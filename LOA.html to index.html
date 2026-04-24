@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-width=5.0, user-scalable=yes" />
+  <title>Line Operation Audit(LOA) Worksheet (F-OPFQ-002)</title>
+
+  <!-- PWA Offline Manifest -->
+  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22LOA%20Worksheet%22,%22short_name%22:%22LOA%20Work%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%231D2951%22}">
+
+  <!-- iOS PWA Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LOA Work">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+    :root {
+      --navy: #1D2951;
+      --bg-gray: #f3f4f6;
+      --red: #dc2626;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      background-color: var(--bg-gray);
+      color: var(--navy);
+      touch-action: manipulation;
+      scroll-behavior: smooth;
+    }
+
+    .paper-page {
+      background: white;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+      border: 1.5px solid var(--navy);
+      padding: 30px;
+      min-height: 1120px; 
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 스크롤 시 제목이 헤더(h-14) 아래에 가려지지 않도록 여백 설정 */
+    section, .mgmt-section {
+      scroll-margin-top: 80px;
+    }
+
+    .paper-border { border: 1.5px solid var(--navy); }
+    .paper-border-b { border-bottom: 1.5px solid var(--navy); }
+    .paper-border-r { border-right: 1.5px solid var(--navy); }
+    
+    .line-input {
+      border: none;
+      border-bottom: 1px solid var(--navy);
+      background: transparent;
+      border-radius: 0;
+      padding: 2px 4px;
+      width: 100%;
+      font-size: 0.85rem;
+      text-align: center;
+      color: var(--navy);
+    }
+    .line-input:focus { outline: none; border-bottom: 2.5px solid var(--navy); background: #f1f5f9; }
+
+    table { border-collapse: collapse; width: 100%; border: 1.5px solid var(--navy); table-layout: fixed; }
+    th, td { border: 1px solid var(--navy); padding: 5px; text-align: center; font-size: 0.8rem; color: var(--navy); overflow: hidden; }
+    th { background-color: #f1f5f9; font-weight: 900; text-transform: uppercase; }
+
+    .nav-tab { border-bottom: 4px solid transparent; }
+    .nav-tab.active {
+      border-bottom: 4px solid var(--navy);
+      font-weight: 900;
+      background: #f1f5f9;
+    }
+
+    .mono { font-family: ui-monospace, monospace; }
+
+    .form-footer {
+      margin-top: auto;
+      padding-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+    }
+
+    .ref-table th { font-size: 0.75rem; padding: 4px; }
+    .ref-table td { font-size: 0.75rem; text-align: left; padding: 6px; vertical-align: top; }
+    .ref-code { font-weight: 900; color: #1D2951; shrink-0; width: 50px; display: inline-block; }
+    .ref-item { font-size: 11px; margin-bottom: 2px; display: flex; gap: 8px; }
+    .ref-id { font-weight: 900; min-width: 30px; }
+
+    /* Floating TOP Button */
+    #topBtn {
+      position: fixed;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 100;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: var(--red);
+      color: white;
+      font-weight: 900;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transition: all 0.2s ease;
+      border: 2px solid white;
+      line-height: 1;
+    }
+    #topBtn .arrow { font-size: 16px; margin-bottom: 1px; }
+    #topBtn .text { font-size: 9px; }
+    #topBtn:hover { background-color: #ef4444; transform: translateY(-50%) scale(1.1); }
+    #topBtn:active { transform: translateY(-50%) scale(0.95); }
+
+    /* Ref Page Bottom Fixed Navigation */
+    #refBottomNav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: white;
+      border-top: 2px solid var(--navy);
+      padding: 12px;
+      display: none;
+      justify-content: center;
+      gap: 15px;
+      z-index: 90;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+    }
+    .ref-nav-btn {
+      background-color: var(--navy);
+      color: white;
+      font-weight: 900;
+      font-size: 12px;
+      padding: 8px 20px;
+      border-radius: 4px;
+      transition: opacity 0.2s;
+    }
+    .ref-nav-btn:hover { opacity: 0.9; }
+
+    /* Print styling - 기존 코드를 삭제하고 이 코드로 덮어쓰세요 */
+@media print {
+  /* 1. 인쇄 불필요 요소 제거 */
+  .no-print, nav, #topBtn, #refBottomNav, .nav-tab, #resetModal, .modal-backdrop, button, #page4 { 
+    display: none !important; 
+  }
+
+  /* 2. 전체 페이지 가로 스크롤 및 배경 설정 */
+  html, body {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important; /* 가로 스크롤 방지 */
+    background-color: white !important;
+  }
+
+  /* 3. SECTION 1, 2, 3 페이지 공통 설정 */
+  .paper-page {
+    box-shadow: none !important;
+    border: 1px solid #1D2951 !important;
+    margin-bottom: 20px !important;
+    padding: 15mm !important; /* 인쇄 여백 최적화 */
+    page-break-before: always;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    display: block !important;
+  }
+  .paper-page:first-of-type { page-break-before: avoid !important; }
+
+  /* 4. SECTION 3 (Threat, Error, UAS) 전용 고정 설정 */
+  #sec_threat_mgmt table, 
+  #sec_error_mgmt table, 
+  #sec_uas_mgmt table {
+    table-layout: fixed !important; /* 강제 너비 고정 */
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  /* SECTION 3의 모든 테이블 칸(th, td) 비율 강제 고정 */
+  /* ID(40px) / 항목들(비율별) / 나머지(자동분배) */
+  #sec_threat_mgmt th:nth-child(1), #sec_threat_mgmt td:nth-child(1),
+  #sec_error_mgmt th:nth-child(1), #sec_error_mgmt td:nth-child(1),
+  #sec_uas_mgmt th:nth-child(1), #sec_uas_mgmt td:nth-child(1) { width: 45px !important; }
+
+  #sec_threat_mgmt th:nth-child(2), #sec_threat_mgmt td:nth-child(2),
+  #sec_error_mgmt th:nth-child(2), #sec_error_mgmt td:nth-child(2),
+  #sec_uas_mgmt th:nth-child(2), #sec_uas_mgmt td:nth-child(2) { width: 15% !important; }
+
+  /* 5. 입력창이 칸을 뚫고 나가는 현상 방지 (가장 중요) */
+  input, select, textarea {
+    border: none !important;
+    background: transparent !important;
+    color: black !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    word-break: break-all !important; /* 긴 텍스트 강제 줄바꿈 */
+    font-size: 10pt !important; /* 인쇄 시 가독성 확보 */
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0; /* body의 여백과 .paper-page의 padding으로 조절 */
+  }
+}
+    .threat-group-header, .error-group-header, .uas-group-header { background-color: #f8fafc; }
+  </style> 
+</head>
+<body class="p-0 md:p-6 pb-20">
+  <div id="offline-indicator" class="fixed top-0 left-0 h-1 bg-yellow-400 z-[9999] hidden"></div>	
+
+  <!-- Navigation Bar -->
+<nav class="no-print sticky top-0 z-50 bg-white border-b-2 border-[#1D2951] mb-6 shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center justify-between px-4 h-14">
+      <div class="flex items-center gap-6 overflow-x-auto">
+        <span class="font-black text-xl tracking-tighter text-[#1D2951] whitespace-nowrap">AIR PREMIA</span>
+        <div class="flex h-full items-center">
+          <button onclick="showPage(1)" id="tab1" class="nav-tab active px-3 md:px-4 py-4 text-[10px] md:text-[12px] font-bold uppercase transition-all">Section 1</button>
+          <button onclick="showPage(2)" id="tab2" class="nav-tab px-3 md:px-4 py-4 text-[10px] md:text-[12px] font-bold uppercase transition-all">Section 2</button>
+          <button onclick="showPage(3)" id="tab3" class="nav-tab px-3 md:px-4 py-4 text-[10px] md:text-[12px] font-bold uppercase transition-all">Section 3</button>
+          <button onclick="showPage(4)" id="tab4" class="nav-tab px-3 md:px-4 py-4 text-[10px] md:text-[12px] font-bold uppercase transition-all">Reference Code</button>
+        </div>
+      </div>
+      <div class="flex gap-2 ml-4">
+        <button onclick="finalSendToPDF(event)" 
+        class="bg-white text-[#1D2951] border-2 border-[#1D2951] text-[10px] md:text-[12px] font-bold px-2 md:px-3 py-1.5 rounded uppercase">
+  SEND
+</button>
+        
+        <button onclick="exportExcel()" 
+                class="bg-white text-[#1D2951] border-2 border-[#1D2951] text-[10px] md:text-[12px] font-bold px-2 md:px-3 py-1.5 rounded uppercase">
+          Excel
+        </button>
+
+<button onclick="if(confirm('모든 데이터가 초기화됩니다. 계속하시겠습니까?')) location.reload();" ...>
+
+<button onclick="resetForm()" 
+        class="bg-[#ff0000] text-white border-2 border-[#1D2951] text-[10px] md:text-[12px] font-bold px-2 md:px-3 py-1.5 rounded uppercase">
+  Reset
+</button>
+      </div>
+    </div>
+  </nav>
+
+  <div id="formArea" class="max-w-6xl mx-auto">
+    
+    <!-- PAGE 1: INTRODUCTION -->
+<div id="page1" class="paper-page">
+      <div class="flex flex-col items-center pb-6 mb-6 paper-border-b text-center border-[#1D2951]">
+        <h1 class="text-2xl md:text-3xl font-black tracking-tight leading-none text-[#1D2951]">Line Operation Audit(LOA) Worksheet</h1>
+      </div>
+
+      <h2 class="text-sm font-black uppercase bg-[#1D2951] text-white px-2 py-1 mb-4 text-center">Section 1. Introduction</h2>
+      
+<div class="mb-6">
+        <h3 class="text-lg font-black uppercase mb-1">A. Auditor Information</h3>
+        <div class="paper-border overflow-hidden" style="border: 0.5px solid #1D2951 !important;">
+          <table class="w-full border-collapse">
+            <tbody>
+              <tr class="border-b border-[#1D2951]">
+                <td class="p-3 w-1/2 border-r border-[#1D2951] bg-slate-50/50">
+                  <div class="flex items-center">
+                    <label class="text-[12px] font-extrabold uppercase text-[#1D2951] shrink-0 w-24">Auditor ID</label>
+                    <div class="flex-grow flex justify-center">
+                      <div class="flex items-center gap-0">
+                        <span class="mono font-bold text-[13px] pr-2 text-[#1D2951] shrink-0 text-right" style="min-width: 55px;">P</span>
+                        <input id="auditorId" class="line-input mono w-32 text-center text-[12px]" placeholder="####" />
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-3 w-1/2 bg-slate-50/50">
+                  <div class="flex items-center">
+                    <label class="text-[12px] font-extrabold uppercase text-[#1D2951] shrink-0 w-24">Auditor Name</label>
+                    <div class="flex-grow flex justify-center">
+                      <div class="pl-[55px]">
+                        <input id="auditorName" class="line-input w-48 text-center text-[12px]" placeholder="Full Name" />
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="p-3 w-1/2 border-r border-[#1D2951] bg-slate-50/50">
+                  <div class="flex items-center">
+                    <label class="text-[12px] font-extrabold uppercase text-[#1D2951] shrink-0 w-24">Audit Number</label>
+                    <div class="flex-grow flex justify-center">
+                      <div class="flex items-center gap-0">
+                        <span class="mono font-bold text-[13px] pr-2 text-[#1D2951] shrink-0 text-right" style="min-width: 55px;">LOA -</span>
+                        <input id="auditNumber" class="line-input mono w-32 text-center text-[12px]" placeholder="####" />
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-3 w-1/2 bg-slate-50/50 text-center italic text-[10px] opacity-40">
+                  
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-lg font-black uppercase mb-1">B. Flight Information</h3>
+        <div class="paper-border overflow-hidden" style="border: 0.5px solid #1D2951 !important;">
+          <table class="w-full border-collapse">
+            <tbody>
+              <tr>
+                <td class="p-3 w-1/3 border-r border-[#1D2951] bg-slate-50/50">
+                  <div class="flex items-center">
+                    <label class="text-[12px] font-extrabold uppercase text-[#1D2951] shrink-0">Route</label>
+                    <div class="flex-grow flex justify-center">
+                      <select id="route" class="bg-transparent text-[12px] font-bold cursor-pointer w-40" 
+        style="text-align: center !important; 
+               text-align-last: center !important; 
+               border: none !important; 
+               outline: none !important; 
+               appearance: auto !important; 
+               -webkit-appearance: auto !important;
+               /* 화살표 공간을 상쇄하기 위한 왼쪽 여백 */
+               padding: 2px 0 2px 24px !important;">
+  <option value="-">-</option>
+  <optgroup label="JAPAN / ASIA">
+    <option value="ICN-NRT">ICN-NRT</option>
+    <option value="NRT-ICN">NRT-ICN</option>  
+    <option value="ICN-HKG">ICN-HKG</option>
+    <option value="HKG-ICN">HKG-ICN</option>
+    <option value="ICN-BKK">ICN-BKK</option>
+    <option value="BKK-ICN">BKK-ICN</option>
+    <option value="ICN-DAD">ICN-DAD</option>
+    <option value="DAD-ICN">DAD-ICN</option>
+  </optgroup>
+  <optgroup label="AMERICA (West)">
+    <option value="ICN-LAX">ICN-LAX</option>
+    <option value="LAX-ICN">LAX-ICN</option>
+    <option value="ICN-SFO">ICN-SFO</option>
+    <option value="SFO-ICN">SFO-ICN</option>
+    <option value="ICN-HNL">ICN-HNL</option>
+    <option value="HNL-ICN">HNL-ICN</option>
+  </optgroup>
+  <optgroup label="AMERICA (East)">
+    <option value="ICN-EWR">ICN-EWR</option>
+    <option value="EWR-ICN">EWR-ICN</option>
+    <option value="ICN-IAD">ICN-IAD</option>
+    <option value="IAD-ICN">IAD-ICN</option>
+  </optgroup>
+</select>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-3 w-1/3 border-r border-[#1D2951] bg-slate-50/50">
+                  <div class="flex items-center">
+                    <label class="text-[12px] font-extrabold uppercase text-[#1D2951] shrink-0">Take Off</label>
+                    <div class="flex-grow flex justify-center">
+                      <select id="tkoPf" class="bg-transparent text-[12px] font-bold cursor-pointer w-40" 
+        style="text-align: center !important; 
+               text-align-last: center !important; 
+               border: none !important; 
+               outline: none !important; 
+               appearance: auto !important; 
+               -webkit-appearance: auto !important;
+               padding: 2px 0 2px 24px !important;"> 
+  <option value="-">-</option>
+  <option value="CAPTAIN">CAPTAIN</option>
+  <option value="FIRST OFFICER">FIRST OFFICER</option>
+</select>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-3 w-1/3 bg-slate-50/50">
+                  <div class="flex items-center">
+                    <label class="text-[12px] font-extrabold uppercase text-[#1D2951] shrink-0">Landing</label>
+                    <div class="flex-grow flex justify-center">
+                      <select id="ldgPf" class="bg-transparent text-[12px] font-bold cursor-pointer w-40" 
+        style="text-align: center !important; 
+               text-align-last: center !important; 
+               border: none !important; 
+               outline: none !important; 
+               appearance: auto !important; 
+               -webkit-appearance: auto !important;
+               padding: 2px 0 2px 24px !important;"> 
+  <option value="-">-</option>
+  <option value="CAPTAIN">CAPTAIN</option>
+  <option value="FIRST OFFICER">FIRST OFFICER</option>
+</select>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-lg font-black uppercase mb-1">C. Crew Information</h3>
+        <div class="paper-border overflow-hidden" style="border: 0.5px solid #1D2951 !important;">
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2" class="w-16">Crew</th>
+                <th colspan="4" class="text-[11px] font-extrabold uppercase">Years of experience with Air Premia</th>
+                <th colspan="4" class="text-[11px] font-extrabold uppercase">Years of experience in all airlines</th>
+              </tr>
+              <tr>
+                <th>NEW</th><th>1~2</th><th>3~5</th><th>6~</th>
+                <th>NEW</th><th>1~5</th><th>6~10</th><th>11~</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-bold">CAPT</td>
+                <td><input type="radio" name="captAp"></td><td><input type="radio" name="captAp"></td><td><input type="radio" name="captAp"></td><td><input type="radio" name="captAp"></td>
+                <td><input type="radio" name="captTot"></td><td><input type="radio" name="captTot"></td><td><input type="radio" name="captTot"></td><td><input type="radio" name="captTot"></td>
+              </tr>
+              <tr>
+                <td class="font-bold">FO</td>
+                <td><input type="radio" name="foAp"></td><td><input type="radio" name="foAp"></td><td><input type="radio" name="foAp"></td><td><input type="radio" name="foAp"></td>
+                <td><input type="radio" name="foTot"></td><td><input type="radio" name="foTot"></td><td><input type="radio" name="foTot"></td><td><input type="radio" name="foTot"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-lg font-black uppercase mb-1">D. Notes & Hazard </h3>
+        <div class="paper-border p-4 bg-slate-50" style="border: 0.5px solid #1D2951 !important;">
+          <div class="flex gap-8 mb-4">
+            <label class="flex items-center gap-2 text-[13px] font-bold cursor-pointer">
+              <input type="checkbox" id="hazardFlag" class="w-4 h-4 accent-[#1D2951]"> Hazard Identified
+            </label>
+            <label class="flex items-center gap-2 text-[13px] font-bold cursor-pointer">
+              <input type="checkbox" id="recoFlag" class="w-4 h-4 accent-[#1D2951]"> Recommendations
+            </label>
+          </div>
+          <textarea id="hazardDetail" 
+          oninput="autoResize(this)" 
+          class="line-input min-h-[192px] overflow-hidden text-[13px] leading-relaxed text-left p-3 bg-white border border-[#1D2951]" 
+          placeholder="Description of hazards or recommendations identified during the observation..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <div class="text-[10px] font-black uppercase text-[#1D2951]">Form No: F-OPFQ-002</div>
+        <div class="text-center text-[10px] font-bold italic opacity-60">Page 1 of 4</div>
+        <div class="text-[10px] font-black uppercase text-[#1D2951]">Rev.2 : 2026.03.31</div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: TEM WORKSHEET (Section 2) -->
+    <div id="page2" class="paper-page hidden">
+      <h2 class="text-sm font-black uppercase bg-[#1D2951] text-white px-2 py-1 mb-4 text-center">Section 2. TEM Worksheet</h2>
+      
+      <div class="mb-4 flex justify-end items-center no-print">
+        <button type="button" onclick="addRow()" class="bg-[#1D2951] text-white text-[12px] font-bold px-4 py-1 rounded transition-opacity hover:opacity-80">+ Add Row</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table id="obsTable">
+          <thead>
+            <tr>
+              <th class="w-48">Phase</th>
+              <th>Observations</th>
+            </tr>
+          </thead>
+          <tbody id="obsBody">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-footer">
+        <div class="text-[10px] font-black uppercase text-[#1D2951]">Form No: F-OPFQ-002</div>
+        <div class="text-center text-[10px] font-bold italic opacity-60">Page 2 of 4</div>
+        <div class="text-[10px] font-black uppercase text-[#1D2951]">Rev.2 : 2026.XX.XX</div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: Section 3. Threat & Error Management -->
+    <div id="page3" class="paper-page hidden">
+      <h2 class="text-sm font-black uppercase bg-[#1D2951] text-white px-2 py-1 mb-6 text-center">Section 3. Threat & Error Management</h2>
+      
+      <!-- A. Threat Management Part -->
+      <div class="mb-10 mgmt-section" id="sec_threat_mgmt">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-black uppercase px-2 border-l-4 border-[#1D2951]">A. Threat Management</h3>
+          <button type="button" onclick="addThreatRow()" class="no-print bg-[#1D2951] text-white text-[10px] font-bold px-4 py-1.5 rounded transition-opacity hover:opacity-80">+ Add Row</button>
+        </div>
+
+
+        <div class="overflow-x-auto">
+          <table id="threatTable">
+            <thead>
+              <tr>
+                <th class="w-12">Threat</th>
+                <th class="w-32">Phase</th>
+                <th class="w-20">Code</th>
+                <th class="w-24">Outcomes</th>
+                <th class="w-20">Linked to</th>
+                <th colspan="2" class="w-32">(-) Competency</th>
+                <th colspan="2" class="w-32">(+) Competency</th>
+              </tr>
+            </thead>
+            <tbody id="threatBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- B. Error Management Part -->
+      <div class="mb-10 mgmt-section" id="sec_error_mgmt">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-black uppercase px-2 border-l-4 border-[#1D2951]">B. Error Management</h3>
+          <button type="button" onclick="addErrorRow()" class="no-print bg-[#1D2951] text-white text-[10px] font-bold px-4 py-1.5 rounded transition-opacity hover:opacity-80">+ Add Row</button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table id="errorTable">
+            <thead>
+              <tr>
+                <th class="w-12">Error</th>
+                <th class="w-32">Phase</th>
+                <th class="w-20">Code</th>
+                <th class="w-24">Response</th>
+                <th class="w-20">Outcomes</th>
+                <th colspan="2" class="w-32">(-) Competency</th>
+                <th colspan="2" class="w-32">(+) Competency</th>
+              </tr>
+            </thead>
+            <tbody id="errorBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- C. UAS Management Part -->
+      <div class="mb-10 mgmt-section" id="sec_uas_mgmt">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-black uppercase px-2 border-l-4 border-[#1D2951]">C. Undesired Aircraft State(UAS) Management</h3>
+          <button type="button" onclick="addUasRow()" class="no-print bg-[#1D2951] text-white text-[10px] font-bold px-4 py-1.5 rounded transition-opacity hover:opacity-80">+ Add Row</button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table id="uasTable">
+            <thead>
+              <tr>
+                <th class="w-12">UAS</th>
+                <th class="w-32">Error #</th>
+                <th class="w-20">Code</th>
+                <th class="w-24">Response</th>
+                <th class="w-20">Outcomes</th>
+                <th colspan="2" class="w-32">(-) Competency</th>
+                <th colspan="2" class="w-32">(+) Competency</th>
+              </tr>
+            </thead>
+            <tbody id="uasBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="form-footer">
+        <div class="text-[10px] font-black uppercase text-[#1D2951]">Form No: F-OPFQ-002</div>
+        <div class="text-center text-[10px] font-bold italic opacity-60">Page 3 of 4</div>
+        <div class="text-[10px] font-black uppercase text-[#1D2951]">Rev.2 : 2026.XX.XX</div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: REF CODES -->
+    <div id="page4" class="paper-page hidden">
+      <h2 class="text-sm font-black uppercase bg-[#1D2951] text-white px-2 py-1 mb-4 text-center">Reference Codes</h2>
+      
+      <!-- Quick Navigation Buttons -->
+      <div class="no-print flex flex-wrap gap-2 mb-6 justify-center">
+        <button onclick="scrollToSection('sec_comp')" class="bg-[#1D2951] text-white text-[11px] font-bold px-3 py-1.5 rounded hover:bg-opacity-80 transition-all">A. Competency</button>
+        <button onclick="scrollToSection('sec_threat')" class="bg-[#1D2951] text-white text-[11px] font-bold px-3 py-1.5 rounded hover:bg-opacity-80 transition-all">B. Threat Code</button>
+        <button onclick="scrollToSection('sec_error')" class="bg-[#1D2951] text-white text-[11px] font-bold px-3 py-1.5 rounded hover:bg-opacity-80 transition-all">C. Error Code</button>
+        <button onclick="scrollToSection('sec_uas')" class="bg-[#1D2951] text-white text-[11px] font-bold px-3 py-1.5 rounded hover:bg-opacity-80 transition-all">D. UAS Code</button>
+      </div>
+
+      <div class="space-y-12">
+        <!-- Part A -->
+        <section id="sec_comp">
+          <h3 class="text-[13px] font-black uppercase border-l-4 border-[#1D2951] pl-3 mb-4">A. Competencies</h3>
+          <div id="compTableContainer" class="overflow-x-auto">
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th class="w-1/4">Competency</th>
+                  <th>Observable behaviors</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="font-bold">Application of knowledge (KNO)</div>
+                    <div class="text-[10px] mt-1 italic">Demonstrates knowledge and understanding of relevant information, operating instructions, aircraft systems and the operating environment</div>
+                    <div class="text-[10px] mt-1 opacity-80">(비행 관련 정보, 운항 절차, 항공기 시스템 및 운항 환경에 대한 지식과 이해를 보여줌)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Demonstrates practical and applicable knowledge of limitations and systems and their interaction (항공기 시스템의 운용 제한사항 및 계통 간 상호작용에 대한 실질적인 지식을 갖추고, 이를 실제 운항에 효과적으로 적용함)
+</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Demonstrates required knowledge of published operating instructions (발간된 운항 절차에 대한 필요한 지식을 보여준다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Demonstrates knowledge of the physical environment, the air traffic environment including routings, weather, airports and the operational infrastructure (항로, 기상, 공항 및 운항 인프라를 포함한 물리적·지리적 환경과 항공 교통 환경에 대한 실질적인 지식을 갖춤)
+</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Demonstrates appropriate knowledge of applicable legislation (관련 법률에 대한 적절한 지식을 보여준다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Knows where to source required information (필요한 정보를 어디서 찾을 수 있는지 알고 있다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Demonstrates a positive interest in acquiring knowledge (지식 습득에 긍정적인 관심을 보인다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>Is able to apply knowledge effectively (지식을 효과적으로 적용할 수 있다)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Application of procedures (PRO)</div>
+                    <div class="text-[10px] mt-1 italic">Identifies and applies appropriate procedures in accordance with published operating instructions and applicable regulations.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(운항절차 및 관련 규정에 따라 적절한 절차를 식별하고 적용함)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Identifies where to find procedures and regulations (절차와 규정을 어디서 찾을 수 있는지 식별한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Applies relevant operating instructions, procedures and techniques in a timely manner (관련 운항 절차, 기술을 적시에 적용한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Follows SOPs unless a higher degree of safety dictates an appropriate deviation (더 높은 수준의 안전이 요구되는 경우를 제외하고 SOP를 따른다)
+</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Operates aeroplane systems and associated equipment correctly (항공기 시스템과 관련 장비를 올바르게 조작한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Monitors aircraft systems status (항공기 시스템 상태를 모니터링한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Complies with applicable regulations (관련 규정을 준수한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>Applies relevant procedural knowledge (관련된 절차적 지식을 적용한다)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Communication (COM)</div>
+                    <div class="text-[10px] mt-1 italic">Communicates through appropriate means in the operational environment in both normal and non-normal situations.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(정상 및 비정상 상황 모두에서 운항 환경에 적합한 방식으로 의사소통함)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Determines that the recipient is ready and able to receive information (수신자가 정보를 받을 준비가 되었는지 확인한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Selects appropriately what, when, how and with whom to communicate (무엇을, 언제, 어떻게, 누구와 의사 소통할지를 적절히 선택한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Conveys messages clearly, accurately and concisely (전달하고자 하는 정보를 명확하고 정확하게 표현하며, 간결하게 소통함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Confirms that the recipient demonstrates understanding of important information (수신자가 중요한 정보를 이해했음을 확인한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Listens actively and demonstrates understanding when receiving information (정보를 수신할 때 적극적으로 듣고 이해한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Asks relevant and effective questions (관련성 있고 효과적인 질문을 한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>Uses appropriate escalation in communication to resolve deviations (deviation을 해결하기 위해 상황에 적합한 단계별 의사소통 기법을 사용함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 08</span>Uses and interprets non-verbal communication in an appropriate manner (비언어적 의사소통을 사용하고 해석한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 09</span>Adheres to standard radiotelephone phraseology and procedures (표준 무선통신 용어와 절차를 준수한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 10</span>Accurately reads, interprets, constructs and responds to datalink messages (데이터링크 메시지를 정확히 읽고 응답한다)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Aeroplane Flight Path Management, automation (FPA)</div>
+                    <div class="text-[10px] mt-1 italic">Controls the aeroplane flight path through automation.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(자동조종장치를 통해 비행경로를 제어함)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Uses appropriate flight management, guidance systems and automation (장착된 비행 관리 및 유도 시스템과 자동화 기능을 운항 조건에 부합하도록 적절히 운용함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Monitors and detects deviations from the intended flight path and takes appropriate action (의도한 비행 경로에서 벗어나는 것을 감지하고 조치를 취한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Manages the flight path safely to achieve optimum operational performance (최적의 운항 효율성을 확보하기 위해 비행 경로를 안전하게 통제 및 관리함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Maintains the intended flight path during flight using automation while managing other tasks and distractions (기타 업무 및 방해 요소를 관리하는 동시에, 자동화 시스템을 활용하여 의도된 비행 경로를 안정적으로 유지함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Selects appropriate level and mode of automation in a timely manner considering phase of flight and workload (비행단계와 workload를 고려한 적절한 수준의 Automation mode를 적시에 선택함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Effectively monitors automation, including engagement and mode transitions (자동화 상태와 모드 전환 등을 효과적으로 모니터링한다)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Aeroplane Flight Path Management, manual control (FPM)</div>
+                    <div class="text-[10px] mt-1 italic">Controls the aeroplane flight path through manual control.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(수동 조종을 통해 비행경로를 제어함)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Controls the aircraft manually with accuracy and smoothness as appropriate to the situation (상황에 부합하도록 항공기를 정확(Accuracy)하고 부드럽게(Smoothness) 수동으로 조종함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Monitors and detects deviations from the intended flight path and takes appropriate action (의도된 비행 경로와의 편차를 감시 및 식별하고, 이에 따른 적절한 조치를 취함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Manually controls the aeroplane using the relationship between aeroplane attitude, speed and thrust, and navigation signals or visual information(항공기 자세(Attitude), 속도 및 추력(Thrust) 간의 상관관계를 활용하고, 항행 신호 및 시각 정보를 참조하여 항공기를 수동으로 제어함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Manages the flight path safely to achieve optimum operational performance (운항 성능을 달성하도록 비행 경로를 안전하게 관리한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Maintains the intended flight path during manual flight while managing other tasks and distractions (수동 비행 중 여타 업무 및 방해 요소를 관리하면서도, 의도된 비행 경로를 안정적으로 유지함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Uses appropriate flight management and guidance systems, as installed and applicable to the conditions (운항 조건에 부합하도록, 장착된 FMS 및 guidance 시스템을 적절히 운용함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>Effectively monitors flight guidance systems including engagement and automatic mode transitions (Engagement 및 Automatic mode Transitions을 포함하여, 비행 유도 시스템을 효과적으로 감시함)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Leadership and Teamwork (LTW)</div>
+                    <div class="text-[10px] mt-1 italic">Collaborates to achieve the team goals, contributing to a shared common goal.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(공동의 목표에 기여하도록 팀의 목표를 달성하기 위해 협력함)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Encourages team participation and open communication (팀의 참여와 개방적 의사소통을 유도한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Demonstrates initiative and provides direction when required (필요시 주도적으로 방향을 제시한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Engages others in planning (계획 수립에 타인을 참여시킨다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Considers inputs from others (타인의 의견을 고려한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Gives and receives feedback constructively (건설적인 피드백을 제공하고 수용함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Addresses and resolves conflicts and disagreements in a constructive manner (갈등 및 이견을 건설적인 방식으로 중재하고 해결함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>Exercises decisive leadership when required (필요시 결단력 있는 리더십을 발휘한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 08</span>Accepts responsibility for decisions and actions (결정과 행동에 책임을 진다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 09</span>Carries out instructions when directed (지시를 받았을 때 이를 이행한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 10</span>Applies effective intervention strategies to resolve deviations (식별된 deviation을 해결하기 위해 효율적인 중재전략을 적용함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 11</span>Manages cultural and language challenges, as applicable (상황에 따라 발생할 수 있는 문화적 배경 및 언어적 장벽을 효과적으로 관리함)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Problem Solving and Decision Making (PSD)</div>
+                    <div class="text-[10px] mt-1 italic">Identifies precursors, mitigates problems and makes decisions.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(문제의 전조를 식별하고, 이를 완화하며 의사결정을 내림)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Identifies, assesses and manages threats and errors in a timely manner (위협과 오류를 적시에 식별, 평가 및 관리한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Seeks accurate and adequate information from appropriate sources (신뢰할 수 있는 출처로부터 정확하고 충분한 정보를 수집 및 활용함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Identifies and verifies what and why things have gone wrong (발생한 문제의 실체와 원인을 식별 및 검증하되, 상황의 적절성을 고려하여 수행함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Perseveres in working through problems while prioritizing safety (안전을 최우선으로 고려하며, 직면한 문제를 끝까지 완수하고 해결함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Identifies and considers appropriate options (상황에 적합한 가용 옵션을 식별하고 제반 사항을 검토함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Applies appropriate and timely decision-making techniques (적절한 의사결정 모델을 활용하여, 상황에 부합하는 최적의 결정을 적시에 수행함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>Monitors, reviews and adapts decisions as required (수행된 결정을 지속적으로 감시 및 검토하며, 필요시 수정하고 보완함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 08</span>Adapts when faced with situations where no guidance or procedure exists (표준 지침이나 절차가 마련되지 않은 이례적 상황에서도 유연하게 대응함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 09</span>Demonstrates resilience when encountering an unexpected event (예상치 못한 상황에서도 회복력을 보여준다)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Situation awareness (SAW)</div>
+                    <div class="text-[10px] mt-1 italic">Perceives, understands, manages and projects information and its effect.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(정보를 인식, 이해, 관리하고 그 영향을 예측함)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Monitors and assesses the state of the aeroplane and its systems (항공기 및 시스템 상태를 모니터링하고 평가한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Monitors and assesses the aeroplane’s energy state, and its anticipated flight path (항공기의 에너지 상태 및 예상되는 비행 경로를 지속적으로 감시하고 평가함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Monitors and assesses the general environment as it may affect the operation (운항 전반에 영향을 미칠 수 있는 주변 환경 요소를 지속적으로 감시하고 평가함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Validates the accuracy of information and checks for gross errors (정보의 정확성을 검증하고 명백한 오류를 확인한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Maintains awareness of the people involved in or affected by the operation and their capacity to perform as expected (운항 관계자들과 그들의 수행 능력을 파악한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Develops effective contingency plans based upon potential risks associated with threats and errors (잠재적 위험을 기반으로 비상 계획을 수립한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>Responds to indications of reduced situation awareness (상황 인식이 저하되는 징후에 대응한다)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Workload Management (WLM)</div>
+                    <div class="text-[10px] mt-1 italic">Maintain available workload capacity by prioritizing and distributing tasks using appropriate resources.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(가용 자원을 활용하여 업무의 우선순위를 정하고 배분함으로써, 지속적인 업무 수행 여력을 유지함)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>Exercises self-control in all situations (모든 상황에서 자기통제를 유지한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>Plans, prioritizes and schedules appropriate tasks effectively (업무를 체계적으로 계획하고, 우선순위에 따라 효율적으로 일정을 관리함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>Manages time efficiently when carrying out tasks (업무 수행 시 시간을 효율적으로 관리한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Offers and gives assistance (도움을 제공하거나 제공받는다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>Delegates tasks (업무를 위임한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>Seeks and accepts assistance, when appropriate (필요할 때 도움을 구하고 이를 수용한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>Monitors, reviews and cross-checks actions conscientiously (수행된 모든 조치를 세심하게 모니터링하며, 상호 교차 확인을 철저히 수행함)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 08</span>Verifies that tasks are completed to the expected outcome (업무가 기대된 결과에 도달했는지 확인한다)</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 09</span>Manages and recovers from interruptions, distractions, variations and failures effectively while performing tasks (업무 수행 중 발생하는 간섭, 주의 분산 및 비정상 상황을 효과적으로 제어하고 관리함)</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="font-bold">Monitoring and Advice (MNA)</div>
+                    <div class="text-[10px] mt-1 italic">Maintains monitoring and provides advice during Pilot Monitoring duties.</div>
+                    <div class="text-[10px] mt-1 opacity-80">(PM임무 수행 시 Monitoring을 유지하고 필요시 Advice를 실시함)</div>
+                  </td>
+                  <td>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 01</span>FMA(Flight Mode Annunciator)를 실시간으로 확인하여 시스템의 의도와 비행 경로(Flight Path) 간의 일치 여부를 지속적으로 검증함</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 02</span>각 비행 단계에 부합하는 주요 계기 정보를 면밀히 분석하고, 잠재적 오차(Deviation)를 즉각 식별함</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 03</span>상황 인식(Situation Awareness)의 실시간 공유를 통해 비행 안전 마진을 선제적으로 확보함</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 04</span>Risk Trend를 조기에 식별하여 승무원 간 실시간으로 공유함</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 05</span>PF의 Error 및 절차 누락을 조기에 포착함</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 06</span>PF의 Error를 인지했을 경우, 상황에 부합하는 조언을 적시에 제공함</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 07</span>비행 경로 이탈 가능성을 조기에 포착하여, 선제적인 조언이나 적극적인 개입을 수행함</div>
+                    <div style="padding-left: 52px; text-indent: -52px; line-height: 1.4; word-break: keep-all; display: block;">
+  <span class="ref-code" style="display: inline-block; width: 52px; vertical-align: top; text-indent: 0; margin: 0; padding: 0;">OB 08</span>상대방의 반응이 없을 시, 조종권 인수(Takeover)를 포함한 적극적인 개입을 주저 없이 단행함</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Part B -->
+        <section id="sec_threat">
+          <h3 class="text-[13px] font-black uppercase border-l-4 border-[#1D2951] pl-3 mb-4">B. Threat Code</h3>
+          <div id="threatTableContainer" class="overflow-x-auto">
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th class="w-1/2">Environmental Threats</th>
+                  <th class="w-1/2">Organizational Threats</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="font-bold border-b mb-2 text-[#1D2951]">Weather</div>
+                    <div class="ref-item"><span class="ref-id">001.</span> Adverse WX departure / arrival</div>
+                    <div class="ref-item"><span class="ref-id">002.</span> Adverse WX enroute</div>
+                    <div class="ref-item"><span class="ref-id">003.</span> Low visibility takeoff / landing / taxi</div>
+                    <div class="ref-item"><span class="ref-id">004.</span> Low / High temperature</div>
+                    <div class="ref-item"><span class="ref-id">009.</span> Other weather threat</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">ATC</div>
+                    <div class="ref-item"><span class="ref-id">010.</span> Traffic congestion</div>
+                    <div class="ref-item"><span class="ref-id">011.</span> TCAS RA/TA</div>
+                    <div class="ref-item"><span class="ref-id">012.</span> Complex navigation / procedures</div>
+                    <div class="ref-item"><span class="ref-id">013.</span> ATC language difficulty</div>
+                    <div class="ref-item"><span class="ref-id">014.</span> ATC non-standard phraseology</div>
+                    <div class="ref-item"><span class="ref-id">015.</span> ATC error</div>
+                    <div class="ref-item"><span class="ref-id">016.</span> ATC command - challenging clearance, late changes</div>
+                    <div class="ref-item"><span class="ref-id">017.</span> ATIS interpretation</div>
+                    <div class="ref-item"><span class="ref-id">018.</span> Units of measurement (i.e., meter, QFE)</div>
+                    <div class="ref-item"><span class="ref-id">019.</span> Similar call signs</div>
+                    <div class="ref-item"><span class="ref-id">020.</span> Datalink communication malfunction</div>
+                    <div class="ref-item"><span class="ref-id">029.</span> Other ATC threat</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Airport</div>
+                    <div class="ref-item"><span class="ref-id">030.</span> Contaminated runway / taxiway</div>
+                    <div class="ref-item"><span class="ref-id">031.</span> Short runway</div>
+                    <div class="ref-item"><span class="ref-id">032.</span> Lack of / confusing / faded signage or markings</div>
+                    <div class="ref-item"><span class="ref-id">033.</span> Bird activity</div>
+                    <div class="ref-item"><span class="ref-id">034.</span> Lack of Aids or Aids U/S</div>
+                    <div class="ref-item"><span class="ref-id">035.</span> Complex ground navigation</div>
+                    <div class="ref-item"><span class="ref-id">036.</span> Airport constructions</div>
+                    <div class="ref-item"><span class="ref-id">039.</span> Other airport threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">TERR</div>
+                    <div class="ref-item"><span class="ref-id">040.</span> High terrain, high elevation, obstacles</div>
+                    <div class="ref-item"><span class="ref-id">041.</span> High profile / slope descent, complex procedure due to terrain</div>
+                    <div class="ref-item"><span class="ref-id">042.</span> Lack of references, "black hole"</div>
+                    <div class="ref-item"><span class="ref-id">049.</span> Other terrain threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Other Environmental Threats</div>
+                    <div class="ref-item"><span class="ref-id">050.</span> Other environmental threat not listed in the code list</div>
+                  </td>
+                  <td>
+                    <div class="font-bold border-b mb-2 text-[#1D2951]">Operational pressure</div>
+                    <div class="ref-item"><span class="ref-id">060.</span> Operational time pressure - delays</div>
+                    <div class="ref-item"><span class="ref-id">061.</span> Late arriving pilot or aircraft</div>
+                    <div class="ref-item"><span class="ref-id">062.</span> Aircraft / equipment change</div>
+                    <div class="ref-item"><span class="ref-id">063.</span> Missed approach</div>
+                    <div class="ref-item"><span class="ref-id">064.</span> Unfamiliar approach / airport</div>
+                    <div class="ref-item"><span class="ref-id">065.</span> Crew scheduling event</div>
+                    <div class="ref-item"><span class="ref-id">066.</span> Other non-normal operation events (i.e., Max weight T/O, rejected T/O)</div>
+                    <div class="ref-item"><span class="ref-id">069.</span> Other operational pressure threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Aircraft</div>
+                    <div class="ref-item"><span class="ref-id">070.</span> Aircraft malfunction</div>
+                    <div class="ref-item"><span class="ref-id">071.</span> Automation event or anomaly</div>
+                    <div class="ref-item"><span class="ref-id">072.</span> EFB / OPT / iPad event</div>
+                    <div class="ref-item"><span class="ref-id">073.</span> MEL / CDL</div>
+                    <div class="ref-item"><span class="ref-id">079.</span> Other aircraft threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Cabin</div>
+                    <div class="ref-item"><span class="ref-id">080.</span> Cabin event / distraction / interruption</div>
+                    <div class="ref-item"><span class="ref-id">081.</span> Flight attendant error</div>
+                    <div class="ref-item"><span class="ref-id">089.</span> Other cabin threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Maintenance</div>
+                    <div class="ref-item"><span class="ref-id">090.</span> Maintenance event / error</div>
+                    <div class="ref-item"><span class="ref-id">091.</span> Other maintenance threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Ground</div>
+                    <div class="ref-item"><span class="ref-id">100.</span> Ground handling event / error</div>
+                    <div class="ref-item"><span class="ref-id">101.</span> Ground crew communication difficulty</div>
+                    <div class="ref-item"><span class="ref-id">102.</span> De-icing</div>
+                    <div class="ref-item"><span class="ref-id">109.</span> Other ground threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Dispatch</div>
+                    <div class="ref-item"><span class="ref-id">110.</span> Dispatch paperwork event / error</div>
+                    <div class="ref-item"><span class="ref-id">111.</span> Late arriving documents</div>
+                    <div class="ref-item"><span class="ref-id">119.</span> Other dispatch threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Documentation</div>
+                    <div class="ref-item"><span class="ref-id">120.</span> Incomplete / incorrect manuals or charts</div>
+                    <div class="ref-item"><span class="ref-id">121.</span> Other documentation threats</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Other Organizational Threats</div>
+                    <div class="ref-item"><span class="ref-id">130.</span> Other organizational threats not listed in the code list</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Part C -->
+        <section id="sec_error">
+          <h3 class="text-[13px] font-black uppercase border-l-4 border-[#1D2951] pl-3 mb-4">C. Error Code</h3>
+          <div id="errorTableContainer" class="overflow-x-auto">
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th class="w-1/3">Aircraft Handling Errors</th>
+                  <th class="w-1/3">Procedural Errors</th>
+                  <th class="w-1/3">Comm. & Decision-making Errors</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <!-- Aircraft Handling Errors -->
+                  <td>
+                    <div class="font-bold border-b mb-2 text-[#1D2951]">Manual Handling - Flight Control</div>
+                    <div class="ref-item"><span class="ref-id">100.</span> Vertical / lateral deviations</div>
+                    <div class="ref-item"><span class="ref-id">101.</span> Speed deviations</div>
+                    <div class="ref-item"><span class="ref-id">102.</span> Incorrect flaps / slats / speed brakes / landing gear operations</div>
+                    <div class="ref-item"><span class="ref-id">103.</span> Incorrect power / reverser settings</div>
+                    <div class="ref-item"><span class="ref-id">104.</span> Excessive pitch / bank controls</div>
+                    <div class="ref-item"><span class="ref-id">105.</span> Incorrect crosswind landing technique</div>
+                    <div class="ref-item"><span class="ref-id">106.</span> Incorrect brakes / autobrakes / parking brakes operations</div>
+                    <div class="ref-item"><span class="ref-id">119.</span> Other manual handling - Flight control errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Automation Handling</div>
+                    <div class="ref-item"><span class="ref-id">120.</span> MCP - Incorrect altitude / heading / speed / vertical speed settings</div>
+                    <div class="ref-item"><span class="ref-id">121.</span> MCP - Incorrect mode selects</div>
+                    <div class="ref-item"><span class="ref-id">122.</span> MCP - Incorrect mode left engaged</div>
+                    <div class="ref-item"><span class="ref-id">123.</span> MCP - Failure to execute a mode when needed</div>
+                    <div class="ref-item"><span class="ref-id">124.</span> MCP - Incorrect AP / FD settings</div>
+                    <div class="ref-item"><span class="ref-id">125.</span> FMS - Incorrect / omitted FMS entries</div>
+                    <div class="ref-item"><span class="ref-id">126.</span> FMS - Incorrect mode executions</div>
+                    <div class="ref-item"><span class="ref-id">127.</span> FMS - Failure to execute an FMS mode when needed</div>
+                    <div class="ref-item"><span class="ref-id">128.</span> Incorrect auto throttle uses</div>
+                    <div class="ref-item"><span class="ref-id">139.</span> Other automation handling errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Systems / Radio / Instruments</div>
+                    <div class="ref-item"><span class="ref-id">140.</span> Failure to turn on the landing lights</div>
+                    <div class="ref-item"><span class="ref-id">141.</span> Incorrect packs operations</div>
+                    <div class="ref-item"><span class="ref-id">142.</span> Incorrect fuel switch settings</div>
+                    <div class="ref-item"><span class="ref-id">143.</span> Incorrect anti-ice operations</div>
+                    <div class="ref-item"><span class="ref-id">144.</span> Incorrect altimeter settings</div>
+                    <div class="ref-item"><span class="ref-id">145.</span> Incorrect radio frequency settings</div>
+                    <div class="ref-item"><span class="ref-id">146.</span> Failure to turn on TCAS</div>
+                    <div class="ref-item"><span class="ref-id">147.</span> Incorrect display settings</div>
+                    <div class="ref-item"><span class="ref-id">148.</span> Incorrect setup for engine start</div>
+                    <div class="ref-item"><span class="ref-id">149.</span> Failure to turn on seatbelt sign</div>
+                    <div class="ref-item"><span class="ref-id">150.</span> Incorrect WX radar operations</div>
+                    <div class="ref-item"><span class="ref-id">151.</span> Incorrect transponder code entry</div>
+                    <div class="ref-item"><span class="ref-id">169.</span> Other system / radio / instruments errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Ground Navigation</div>
+                    <div class="ref-item"><span class="ref-id">170.</span> Attempting or actually turning down the wrong runway</div>
+                    <div class="ref-item"><span class="ref-id">171.</span> Attempting or actually turning down the wrong taxiway</div>
+                    <div class="ref-item"><span class="ref-id">172.</span> Attempting or actually lining up off position (i.e., off C/L)</div>
+                    <div class="ref-item"><span class="ref-id">173.</span> Missed taxiway / runway / gate</div>
+                    <div class="ref-item"><span class="ref-id">174.</span> Taxi too fast</div>
+                    <div class="ref-item"><span class="ref-id">175.</span> Failure to hold short</div>
+                    <div class="ref-item"><span class="ref-id">189.</span> Other ground navigation errors</div>
+                  </td>
+
+                  <!-- Procedural Errors -->
+                  <td>
+                    <div class="font-bold border-b mb-2 text-[#1D2951]">SOPs</div>
+                    <div class="ref-item"><span class="ref-id">200.</span> Failure to cross-verify MCP / FMS / CDU / FMA mode changes</div>
+                    <div class="ref-item"><span class="ref-id">201.</span> Failure to cross-verify altimeter settings</div>
+                    <div class="ref-item"><span class="ref-id">202.</span> Failure to cross-verify ATC clearances</div>
+                    <div class="ref-item"><span class="ref-id">203.</span> Failure to execute a go-around after passing procedural bottom lines of an unstable approach</div>
+                    <div class="ref-item"><span class="ref-id">204.</span> Sterile cockpit violations</div>
+                    <div class="ref-item"><span class="ref-id">205.</span> Performing correct task procedures out of sequence</div>
+                    <div class="ref-item"><span class="ref-id">206.</span> PF makes own MCP / FMS changes</div>
+                    <div class="ref-item"><span class="ref-id">207.</span> PF makes own Flight control setting</div>
+                    <div class="ref-item"><span class="ref-id">208.</span> Both pilots head down</div>
+                    <div class="ref-item"><span class="ref-id">209.</span> PM/PF duty allocation not clear</div>
+                    <div class="ref-item"><span class="ref-id">210.</span> Omitted handover procedures - Flight control / communication</div>
+                    <div class="ref-item"><span class="ref-id">211.</span> Setting altimeters before the transition altitude</div>
+                    <div class="ref-item"><span class="ref-id">212.</span> Using equipment placarded INOP</div>
+                    <div class="ref-item"><span class="ref-id">213.</span> A/C operation with unresolved MEL</div>
+                    <div class="ref-item"><span class="ref-id">214.</span> Failure to cross-verify paperwork or documentation</div>
+                    <div class="ref-item"><span class="ref-id">229.</span> Other SOPs errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Checklists</div>
+                    <div class="ref-item"><span class="ref-id">230.</span> Missed Checklist item</div>
+                    <div class="ref-item"><span class="ref-id">231.</span> Omitted / forgot Checklist</div>
+                    <div class="ref-item"><span class="ref-id">232.</span> Wrong Checklist performed</div>
+                    <div class="ref-item"><span class="ref-id">233.</span> Checklist performed late or wrong time</div>
+                    <div class="ref-item"><span class="ref-id">234.</span> Incorrect challenge and response</div>
+                    <div class="ref-item"><span class="ref-id">235.</span> Response without verification</div>
+                    <div class="ref-item"><span class="ref-id">236.</span> Completed Checklist not called "complete"</div>
+                    <div class="ref-item"><span class="ref-id">237.</span> Checklist performed by memory</div>
+                    <div class="ref-item"><span class="ref-id">238.</span> Self-initiated / performed Checklist</div>
+                    <div class="ref-item"><span class="ref-id">249.</span> Other Checklist errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Briefings</div>
+                    <div class="ref-item"><span class="ref-id">250.</span> Incomplete or omitted T/O briefing</div>
+                    <div class="ref-item"><span class="ref-id">251.</span> Incomplete or omitted approach briefing</div>
+                    <div class="ref-item"><span class="ref-id">252.</span> Incomplete or omitted Flight attendant briefing</div>
+                    <div class="ref-item"><span class="ref-id">253.</span> Incomplete or omitted engine-out briefing</div>
+                    <div class="ref-item"><span class="ref-id">259.</span> Other briefing errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Callouts</div>
+                    <div class="ref-item"><span class="ref-id">260.</span> Omitted callouts</div>
+                    <div class="ref-item"><span class="ref-id">261.</span> Incorrect callouts</div>
+                    <div class="ref-item"><span class="ref-id">269.</span> Other callout errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Documentation</div>
+                    <div class="ref-item"><span class="ref-id">270.</span> Incorrect weight and balance read</div>
+                    <div class="ref-item"><span class="ref-id">271.</span> Incorrect fuel information recorded</div>
+                    <div class="ref-item"><span class="ref-id">272.</span> Misinterpreted items on the documents (Flight plan / WX charts / NOTAM / dispatch release / FMLB)</div>
+                    <div class="ref-item"><span class="ref-id">273.</span> Missed items on the documents</div>
+                    <div class="ref-item"><span class="ref-id">274.</span> Incorrect runway information recorded</div>
+                    <div class="ref-item"><span class="ref-id">275.</span> Incorrect performance calculations</div>
+                    <div class="ref-item"><span class="ref-id">276.</span> Incorrect ATIS / ATC clearance recorded</div>
+                    <div class="ref-item"><span class="ref-id">277.</span> Incorrect application of MEL</div>
+                    <div class="ref-item"><span class="ref-id">278.</span> Incorrect application of manuals / charts</div>
+                    <div class="ref-item"><span class="ref-id">279.</span> Omitted / incorrect FMLB entries</div>
+                    <div class="ref-item"><span class="ref-id">289.</span> Other documentation errors</div>
+                  </td>
+
+                  <!-- Communication & Decision-making Errors -->
+                  <td>
+                    <div class="font-bold border-b mb-2 text-[#1D2951]">Pilot to External</div>
+                    <div class="ref-item"><span class="ref-id">300.</span> Wrong readbacks or callbacks to ATC</div>
+                    <div class="ref-item"><span class="ref-id">301.</span> Missed ATC calls</div>
+                    <div class="ref-item"><span class="ref-id">302.</span> Omitted call signs to ATC</div>
+                    <div class="ref-item"><span class="ref-id">303.</span> Failure to give readbacks or callbacks to ATC</div>
+                    <div class="ref-item"><span class="ref-id">304.</span> Use of non-standard ATC phraseology</div>
+                    <div class="ref-item"><span class="ref-id">305.</span> Misinterpretation of ATC instructions</div>
+                    <div class="ref-item"><span class="ref-id">306.</span> Altitude deviation without ATC clearance</div>
+                    <div class="ref-item"><span class="ref-id">307.</span> Course / heading deviation without ATC clearance</div>
+                    <div class="ref-item"><span class="ref-id">308.</span> Speed deviation without ATC clearance</div>
+                    <div class="ref-item"><span class="ref-id">309.</span> CPDLC incorrect entry</div>
+                    <div class="ref-item"><span class="ref-id">310.</span> Omitted / incorrect communication to Flight attendant</div>
+                    <div class="ref-item"><span class="ref-id">311.</span> Omitted / incorrect communication to ground crew</div>
+                    <div class="ref-item"><span class="ref-id">312.</span> Omitted / incorrect communication to company (dispatcher / MX)</div>
+                    <div class="ref-item"><span class="ref-id">319.</span> Other pilot to external errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Pilot to Pilot</div>
+                    <div class="ref-item"><span class="ref-id">320.</span> Crew miscommunication - Wrong information communicated</div>
+                    <div class="ref-item"><span class="ref-id">321.</span> Crew miscommunication - Lead to misinterpretation between pilots</div>
+                    <div class="ref-item"><span class="ref-id">322.</span> Non-essential conversation at inappropriate times</div>
+                    <div class="ref-item"><span class="ref-id">323.</span> Missed / lack of communication</div>
+                    <div class="ref-item"><span class="ref-id">329.</span> Other pilot to pilot errors</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Decision-making</div>
+                    <div class="ref-item"><span class="ref-id">330.</span> Accepting ATC instruction that unnecessary increased Risk</div>
+                    <div class="ref-item"><span class="ref-id">331.</span> Making a request to ATC that unnecessary increased Risk</div>
+                    <div class="ref-item"><span class="ref-id">332.</span> Navigation through known bad WX that unnecessary increased Risk</div>
+                    <div class="ref-item"><span class="ref-id">333.</span> Operating at the edge of the performance envelope(No buffer for error)</div>
+                    <div class="ref-item"><span class="ref-id">334.</span> Attempting or actually takeoff without cabin ready</div>
+                    <div class="ref-item"><span class="ref-id">339.</span> Other decision-making error</div>
+<div style="display: block; margin-top: 400px;">
+    <div class="ref-item" style="padding-left: 52px; text-indent: -52px; line-height: 1.4; display: block;">
+        <span style="display: inline-block; width: 52px; text-indent: 0;">&nbsp;</span>
+        <span style="font-style: italic; color: #64748b; font-size: 11px;">* FMLB : Flight Management Log Book</span>
+    </div>
+    
+    <div class="ref-item" style="padding-left: 52px; text-indent: -52px; line-height: 1.4; display: block; margin-top: 2px;">
+        <span style="display: inline-block; width: 52px; text-indent: 0;">&nbsp;</span>
+        <span style="font-style: italic; color: #64748b; font-size: 11px;">* MX : Maintenance</span>
+    </div>
+</div>
+</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Part D -->
+        <section id="sec_uas">
+          <h3 class="text-[13px] font-black uppercase border-l-4 border-[#1D2951] pl-3 mb-4">D. Undesired Aircraft Status(UAS) Code</h3>
+          <div id="uasTableContainer" class="overflow-x-auto">
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th class="w-1/2">Handling & Landing States</th>
+                  <th class="w-1/2">Ground, Configuration & Other</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="font-bold border-b mb-2 text-[#1D2951]">Aircraft Handling - All Phases</div>
+                    <div class="ref-item"><span class="ref-id">001.</span> Inappropriate aircraft control - attitude</div>
+                    <div class="ref-item"><span class="ref-id">002.</span> Inappropriate aircraft control - thrust</div>
+                    <div class="ref-item"><span class="ref-id">003.</span> Vertical deviation</div>
+                    <div class="ref-item"><span class="ref-id">004.</span> Lateral deviation</div>
+                    <div class="ref-item"><span class="ref-id">005.</span> Inappropriate WX penetration</div>
+                    <div class="ref-item"><span class="ref-id">006.</span> Unauthorized airspace penetration</div>
+                    <div class="ref-item"><span class="ref-id">007.</span> Operation outside A/C limitation</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Approach / Landing</div>
+                    <div class="ref-item"><span class="ref-id">010.</span> Unstable approach - go around</div>
+                    <div class="ref-item"><span class="ref-id">011.</span> Unstable approach - continued landing</div>
+                    <div class="ref-item"><span class="ref-id">012.</span> Firm landing</div>
+                    <div class="ref-item"><span class="ref-id">013.</span> Landing off C/L</div>
+                    <div class="ref-item"><span class="ref-id">014.</span> Landing outside TDZ</div>
+                    <div class="ref-item"><span class="ref-id">015.</span> Landing without clearance</div>
+                  </td>
+                  <td>
+                    <div class="font-bold border-b mb-2 text-[#1D2951]">Ground</div>
+                    <div class="ref-item"><span class="ref-id">020.</span> Proceeding towards wrong runway</div>
+                    <div class="ref-item"><span class="ref-id">021.</span> Runway incursion</div>
+                    <div class="ref-item"><span class="ref-id">022.</span> Takeoff without clearance</div>
+                    <div class="ref-item"><span class="ref-id">023.</span> Proceeding towards wrong taxiway / ramp</div>
+                    <div class="ref-item"><span class="ref-id">024.</span> Taxiway / ramp incursion</div>
+                    <div class="ref-item"><span class="ref-id">025.</span> Wrong gate</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Configuration</div>
+                    <div class="ref-item"><span class="ref-id">030.</span> Incorrect A/C configuration - Flight controls</div>
+                    <div class="ref-item"><span class="ref-id">031.</span> Incorrect A/C configuration - systems</div>
+                    <div class="ref-item"><span class="ref-id">032.</span> Incorrect A/C configuration - Automation</div>
+                    <div class="ref-item"><span class="ref-id">033.</span> Incorrect A/C configuration - Engine</div>
+                    <div class="ref-item"><span class="ref-id">034.</span> Incorrect A/C configuration - weight and balance</div>
+
+                    <div class="font-bold border-b mt-4 mb-2 text-[#1D2951]">Other Undesired Aircraft States</div>
+                    <div class="ref-item"><span class="ref-id">099.</span> other undesired aircraft state not listed in the code list</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div class="form-footer">
+        <div class="text-[10px] font-black uppercase text-[#1D2951]">Form No: F-OPFQ-002</div>
+        <div class="text-center text-[10px] font-bold italic opacity-60">Page 4 of 4</div>
+        <div class="text-[10px] font-black uppercase text-[#1D2951]">Rev.2 : 2026.XX.XX</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REF Page Fixed Navigation Bar - Only visible on Section 3 & 4 or as specified -->
+  <div id="refBottomNav" class="no-print hidden">
+    <button onclick="navigateAndScroll(3, 'sec_threat_mgmt')" class="ref-nav-btn">THREAT</button>
+    <button onclick="navigateAndScroll(3, 'sec_error_mgmt')" class="ref-nav-btn">ERROR</button>
+    <button onclick="navigateAndScroll(3, 'sec_uas_mgmt')" class="ref-nav-btn">UAS</button>
+  </div>
+
+  <script>
+    const CODEBOOK = {
+      compCodes: ['KNO', 'PRO', 'COM', 'FPA', 'FPM', 'LTW', 'PSD', 'SAW', 'WLM', 'MNA', '-'],
+      phases: [
+        "-",
+        "PRE-DEPARTURE / TAXI",
+        "TAKE OFF / CLIMB",
+        "CRUISE",
+        "DES / APP / LAND",
+        "TAXI IN",
+        "ALL"
+      ]
+    };
+
+window.showPage = (n) => {
+  // 1. 기존 기능 복구 (페이지/탭 전환)
+  document.querySelectorAll('.paper-page').forEach(p => p.classList.add('hidden'));
+  document.getElementById('page' + n).classList.remove('hidden');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab' + n).classList.add('active');
+
+  // 2. [추가] 하단 버튼 노출 제어 (Section 3, 4에서만 시현)
+  const refNav = document.getElementById('refBottomNav');
+  if (refNav) {
+    if (n === 3 || n === 4) {
+      refNav.style.display = 'flex'; // 3, 4페이지에서는 보임
+    } else {
+      refNav.style.display = 'none'; // 1, 2페이지에서는 가림
+    }
+  }
+
+  window.scrollTo(0, 0);
+};
+
+    window.scrollToSection = (id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    window.navigateAndScroll = (pageIndex, sectionId) => {
+  // 1. 페이지를 먼저 전환 (Section 3로 이동)
+  window.showPage(pageIndex);
+  
+  // 2. 약간의 시간차(0.25초)를 두고 스크롤 실행
+  setTimeout(() => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      // 해당 요소의 절대 좌표를 구함
+      const targetY = el.getBoundingClientRect().top + window.pageYOffset;
+      
+      // [강제 막기 전략] 
+      // 브라우저의 자동 스크롤 간섭을 무시하고 우리가 원하는 좌표로 강제 고정
+      window.scrollTo({
+        top: targetY - 10, 
+        behavior: 'smooth' 
+      });
+
+      // [추가 안전장치] 0.1초 뒤에 한 번 더 좌표를 확인해서 고정 (튕김 현상 방지)
+      setTimeout(() => {
+        window.scrollTo({ top: targetY - 10, behavior: 'auto' });
+      }, 150);
+    }
+  }, 250); 
+};
+
+function addRow(data = {}) {
+  const tbody = document.getElementById('obsBody');
+  const tr = document.createElement('tr');
+  // 기존 표 양식(테두리 등) 유지
+  tr.className = "border-b border-[#1D2951]";
+
+  const s2Phases = ["-", "PRE-DEPARTURE / TAXI", "TAKE OFF / CLIMB", "CRUISE", "DES / APP / LAND", "TAXI IN", "OVERALL FLIGHT"];
+  const selectedPhase = data.phase || "-";
+  const phaseOpts = s2Phases.map(p => `<option value="${p}" ${selectedPhase === p ? 'selected' : ''}>${p}</option>`).join('');
+
+  tr.innerHTML = `
+    <td class="p-2 text-center align-middle border-r border-[#1D2951] w-64 bg-white">
+      <select class="w-full bg-transparent text-[12px] font-bold cursor-pointer" 
+              style="text-align: center !important; text-align-last: center !important; border: none !important; outline: none !important; box-shadow: none !important; appearance: auto !important; -webkit-appearance: auto !important; padding: 4px 2px !important; margin: 0 !important;">
+        ${phaseOpts}
+      </select>
+    </td>
+    <td class="p-0 relative bg-white">
+      <textarea 
+        oninput="autoResize(this)" 
+        class="line-input min-h-[100px] overflow-hidden text-left p-2 w-full block bg-white" 
+        style="border:none; outline:none;"
+        placeholder="Enter observations...">${data.obs || ''}</textarea>
+      
+      <button type="button" 
+              onclick="if(confirm('Delete this row?')) { this.closest('tr').remove(); saveIpadFullState(); }" 
+              class="no-print absolute right-1 top-1 
+                     w-7 h-7 flex items-center justify-center
+                     bg-white text-red-600 rounded border border-red-200 shadow-sm
+                     active:bg-red-600 active:text-white transition-colors z-20 text-[14px] font-bold">
+        ✕
+      </button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+}
+function addThreatRow() {
+  const tbody = document.getElementById('threatBody');
+  const threatCount = Math.floor(tbody.children.length / 2) + 1;
+  const threatId = `T${threatCount}`;
+  const uniqueClass = `thr-group-${threatCount}`;
+  const phaseOpts = CODEBOOK.phases.map(p => `<option value="${p}">${p}</option>`).join('');
+  const compOpts = CODEBOOK.compCodes.map(c => `<option value="${c}" ${c === '-' ? 'selected' : ''}>${c}</option>`).join('');
+  
+  const tr1 = document.createElement('tr');
+  tr1.className = `group threat-group-header ${uniqueClass}`;
+  
+  tr1.innerHTML = `
+    <td rowspan="2" class="p-1 relative border-r-2 border-[#1D2951]">
+      <input class="line-input mono font-bold h-full" style="border-bottom: none; font-size: 1.1rem;" value="${threatId}" readonly>
+      <button type="button" onclick="document.querySelectorAll('.${uniqueClass}').forEach(e => e.remove()); updateThreatIds();" class="no-print absolute left-[-30px] top-1/2 -translate-y-1/2 text-red-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity p-1">✕</button>
+    </td>
+    
+    <td class="p-1 text-center align-middle">
+  <select class="w-full border-none focus:outline-none bg-transparent text-sm font-bold text-center" 
+          style="text-align-last: center;">
+    ${phaseOpts}
+  </select>
+</td>
+    
+    <td class="p-1 text-center align-middle">
+      <textarea class="w-full border-none focus:outline-none bg-transparent text-center h-10 text-sm flex items-center justify-center" 
+          style="resize: none; line-height: 2.5rem;" 
+          placeholder="Code"></textarea>
+    </td>
+
+    <td class="p-1 text-center align-middle">
+  <select class="w-full border-none focus:outline-none bg-transparent text-sm font-bold text-center" 
+          style="text-align-last: center;">
+    <option value="-">-</option>
+    <option value="Inconsequential">Inconsequential</option>
+    <option value="Error">Error</option>
+    <option value="UAS">UAS</option>
+  </select>
+</td>
+
+    <td class="p-1 text-center align-middle">
+      <textarea class="w-full border-none focus:outline-none bg-transparent text-center h-10 text-sm flex items-center justify-center" 
+          style="resize: none; line-height: 2.5rem;" 
+          placeholder="Linked to"></textarea>
+    </td>
+
+    <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold text-center" style="text-align-last: center;">${compOpts}</select></td>
+    <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold text-center" style="text-align-last: center;">${compOpts}</select></td>
+    <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold text-center" style="text-align-last: center;">${compOpts}</select></td>
+    <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold text-center" style="text-align-last: center;">${compOpts}</select></td>
+  `;
+
+// ... 앞부분(tr1 생성 등)은 그대로 두시고 이 지점부터 교체 ...
+  const tr2 = document.createElement('tr');
+  tr2.className = uniqueClass;
+  // 삭제 버튼을 textarea가 포함된 td 안의 오른쪽 상단에 배치
+  tr2.innerHTML = `
+    <td colspan="8" class="p-1 text-left relative">
+      <textarea 
+    oninput="autoResize(this)" 
+    data-section="threat" data-field="notes"
+    class="line-input min-h-[120px] overflow-hidden text-[13px] leading-relaxed text-left p-3 bg-white border border-[#1D2951] w-full" 
+    placeholder="Describe the threat detail..."></textarea>
+      
+      <button type="button" 
+              onclick="document.querySelectorAll('.${uniqueClass}').forEach(e => e.remove()); updateThreatIds();" 
+              class="no-print absolute right-2 top-2 text-red-500 font-bold w-7 h-7 flex items-center justify-center bg-white/90 rounded border border-red-200 shadow-sm active:bg-red-100 transition-colors z-10">
+        ✕
+      </button>
+    </td>
+  `;
+  
+  tbody.appendChild(tr1); 
+  tbody.appendChild(tr2);
+} // addThreatRow 함수 끝
+
+function addErrorRow() {
+  const tbody = document.getElementById('errorBody');
+  
+  // 1. 변수명을 errorCount로 명확히 수정 (THREAT의 threatCount와 로직은 동일)
+  const errorCount = Math.floor(tbody.children.length / 2) + 1;
+  const errorId = `E${errorCount}`; 
+  const uniqueClass = `err-group-${errorCount}`; 
+
+  const phaseOpts = CODEBOOK.phases.map(p => `<option value="${p}">${p}</option>`).join('');
+  const compOpts = CODEBOOK.compCodes.map(c => `<option value="${c}" ${c === '-' ? 'selected' : ''}>${c}</option>`).join('');
+  
+  const tr1 = document.createElement('tr');
+  tr1.className = `group error-group-header ${uniqueClass}`;
+  
+  tr1.innerHTML = `
+    <td rowspan="2" class="p-1 relative border-r-2 border-[#1D2951]">
+      <input class="error-id-display line-input mono font-bold h-full text-center bg-transparent outline-none w-full" 
+             style="border-bottom: none; font-size: 1.1rem;" 
+             value="${errorId}" readonly>
+      <button type="button" onclick="document.querySelectorAll('.${uniqueClass}').forEach(e => e.remove()); updateErrorIds();" 
+              class="no-print absolute left-[-30px] top-1/2 -translate-y-1/2 text-red-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity p-1">✕</button>
+    </td>
+    
+    <td class="p-1 text-center align-middle">
+      <select class="w-full border-none focus:outline-none bg-transparent text-sm font-bold text-center" style="text-align-last: center;">
+        ${phaseOpts}
+      </select>
+    </td>
+    
+    <td class="p-1 text-center align-middle">
+      <textarea class="w-full border-none focus:outline-none bg-transparent text-center h-10 text-sm flex items-center justify-center" 
+          style="resize: none; line-height: 2.5rem;" 
+          placeholder="Code"></textarea>
+    </td>
+
+    <td class="p-1 text-center align-middle">
+      <select class="w-full border-none focus:outline-none bg-transparent text-sm font-bold text-center" style="text-align-last: center;">
+        <option value="-">-</option>
+        <option value="Managed(Detected & Action)">Managed(Detected & Action)</option>
+        <option value="Mismanaged(Detected & Action)">Mismanaged(Detected & Action)</option>
+        <option value="No response(Ignored or undetected)">No response(Ignored or undetected)</option>
+      </select>
+    </td>
+
+    <td class="p-1 text-center align-middle">
+      <select class="w-full border-none focus:outline-none bg-transparent text-sm font-bold text-center" style="text-align-last: center;">
+        <option value="-">-</option>
+        <option value="Inconsequential">Inconsequential</option>
+        <option value="Additional Error">Additional Error</option>
+        <option value="UAS">UAS</option>
+      </select>
+    </td>
+
+    <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold text-center" style="text-align-last: center;">${compOpts}</select></td>
+    <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold text-center" style="text-align-last: center;">${compOpts}</select></td>
+    <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold text-center" style="text-align-last: center;">${compOpts}</select></td>
+    <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold text-center" style="text-align-last: center;">${compOpts}</select></td>
+  `;
+
+  const tr2 = document.createElement('tr');
+  tr2.className = uniqueClass;
+  tr2.innerHTML = `
+    <td colspan="8" class="p-2 text-left bg-gray-50/30">
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-center gap-8 no-print border-b border-gray-200 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-[#1D2951] whitespace-nowrap">CMTD BY:</span>
+            <select class="border border-gray-300 rounded px-2 py-1 text-sm bg-white font-bold min-w-[120px] outline-none">
+              <option value="-">-</option>
+                  <option value="Captain">Captain</option>
+                  <option value="First Officer">First Officer</option>
+                  <option value="Relief Crew">Relief Crew</option>
+                  <option value="Jump Seat">Jump Seat</option>
+                  <option value="All Crew">All Crew</option>
+                  <option value="Nobody(or Auditor)">Nobody(or Auditor)</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-[#1D2951] whitespace-nowrap">C.R KEYWORDS:</span>
+            <select class="border border-gray-300 rounded px-2 py-1 text-sm bg-white font-bold min-w-[160px] outline-none">
+              <option value="-">-</option>
+                  <option value="Lack of knowledge">Lack of knowledge</option>
+                  <option value="Lack of skill">Lack of skill</option>
+                  <option value="Negative attitude">Negative attitude</option>
+                  <option value="Inattention">Inattention</option>
+                  <option value="Complacency">Complacency</option>
+                  <option value="Negligence">Negligence</option>
+                  <option value="Hurry">Hurry</option>
+                  <option value="Fixation">Fixation</option>
+                  <option value="Distraction">Distraction</option>
+                  <option value="Others">Others</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-[#1D2951] whitespace-nowrap">DETECTED BY:</span>
+            <select class="border border-gray-300 rounded px-2 py-1 text-sm bg-white font-bold min-w-[140px] outline-none">
+              <option value="-">-</option>
+                  <option value="Captain">Captain</option>
+                  <option value="First Officer">First Officer</option>
+                  <option value="Relief Crew">Relief Crew</option>
+                  <option value="Jump Seat">Jump Seat</option>
+                  <option value="All Crew">All Crew</option>
+                  <option value="Nobody(or Auditor)">Nobody(or Auditor)</option>
+                  <option value="ATC">ATC</option>
+                  <option value="Cabin Crew">Cabin Crew</option>
+                  <option value="Dispatch">Dispatch</option>
+                  <option value="Ground Crew">Ground Crew</option>
+                  <option value="Aircraft System">Aircraft System</option>
+                  <option value="Others">Others</option>
+            </select>
+          </div>
+        </div>
+        <div class="relative w-full">
+  <textarea 
+    oninput="autoResize(this)" 
+    data-section="error" data-field="notes"
+    class="line-input min-h-[120px] overflow-hidden text-[13px] leading-relaxed text-left p-3 bg-white border border-[#1D2951] w-full" 
+    placeholder="Describe the error detail..."></textarea>
+  
+  <button type="button" 
+          onclick="const rows = document.querySelectorAll('.${uniqueClass}'); rows.forEach(r => r.remove()); updateErrorIds();" 
+          class="no-print absolute right-2 top-2 text-red-500 font-bold w-7 h-7 flex items-center justify-center bg-white/90 rounded border border-red-200 shadow-sm active:bg-red-100 z-10">
+    ✕
+  </button>
+</div>
+      </div>
+    </td>
+  `;
+  
+  tbody.appendChild(tr1);
+  tbody.appendChild(tr2);
+}
+function updateErrorIds() {
+  const headers = document.querySelectorAll('#errorBody tr.error-group-header');
+  headers.forEach((row, idx) => {
+    const input = row.querySelector('.error-id-display');
+    if (input) input.value = `E${idx + 1}`;
+  });
+}
+function addUasRow() {
+      const tbody = document.getElementById('uasBody');
+      const uasCount = Math.floor(tbody.children.length / 2) + 1; 
+      const uasId = `U${uasCount}`;
+      const uniqueClass = `uas-group-${uasCount}`;
+      const phaseOpts = CODEBOOK.phases.map(p => `<option value="${p}">${p}</option>`).join('');
+      const compOpts = CODEBOOK.compCodes.map(c => `<option value="${c}" ${c === '-' ? 'selected' : ''}>${c}</option>`).join('');
+
+      const tr1 = document.createElement('tr');
+      tr1.className = `group uas-group-header ${uniqueClass}`;
+      
+      tr1.innerHTML = `
+        <td rowspan="2" class="p-1 relative border-r-2 border-[#1D2951]">
+          <input class="line-input mono font-bold h-full text-center" style="border-bottom: none; font-size: 1.1rem;" value="${uasId}" readonly>
+          <button type="button" onclick="document.querySelectorAll('.${uniqueClass}').forEach(e => e.remove()); updateUasIds();" class="no-print absolute left-[-30px] top-1/2 -translate-y-1/2 text-red-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity p-1">✕</button>
+       </td>
+        <td class="p-1 text-center align-middle">
+          <select class="w-full border-none focus:outline-none bg-transparent text-sm font-bold cursor-pointer" style="text-align-last: center;">
+            <option value="-">-</option>
+            <option value="E1">E1</option>
+            <option value="E2">E2</option>
+            <option value="E3">E3</option>
+            <option value="E3">E4</option>
+            <option value="E3">E5</option>
+            <option value="E3">E6</option>
+        </td>
+        <td class="p-1 text-center align-middle">
+          <textarea class="w-full border-none focus:outline-none bg-transparent text-center h-10 text-sm flex items-center justify-center" 
+          style="resize: none; line-height: 40px; padding: 0;" 
+          placeholder="Code"></textarea>
+        </td>
+        <td class="p-1 text-center align-middle">
+          <select class="w-full border-none focus:outline-none bg-transparent text-sm font-bold cursor-pointer" style="text-align-last: center;">
+            <option value="-">-</option>
+            <option value="Mitigate">Mitigate</option>
+            <option value="Exacerbate">Exacerbate</option>
+            <option value="No response">No response</option>
+          </select>
+        <td class="p-1 text-center align-middle">
+  <select class="w-full border-none focus:outline-none bg-transparent text-sm font-bold text-center" 
+          style="text-align-last: center;">
+    <option value="-">-</option>
+    <option value="Inconsequential">Inconsequential</option>
+    <option value="Additional Error">Additional Error</option>
+  </select>
+        </td>
+        <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold" style="text-align-last: center;">${compOpts}</select></td>
+        <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold" style="text-align-last: center;">${compOpts}</select></td>
+        <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold" style="text-align-last: center;">${compOpts}</select></td>
+        <td class="p-1 text-center align-middle"><select class="w-full border-none focus:outline-none bg-transparent text-xs font-bold" style="text-align-last: center;">${compOpts}</select></td>
+      `;
+
+      const tr2 = document.createElement('tr');
+      tr2.className = uniqueClass;
+      tr2.innerHTML = `
+        <td colspan="8" class="p-2 text-left bg-gray-50/30">
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-center gap-10 no-print border-b border-gray-200 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-[#1D2951] whitespace-nowrap">COMMITTED BY:</span>
+                <select class="border border-gray-300 rounded px-2 py-1 text-sm bg-white font-bold min-w-[140px] outline-none" style="text-align-last: center;">
+                  <option value="-">-</option>
+                  <option value="Captain">Captain</option>
+                  <option value="First Officer">First Officer</option>
+                  <option value="Relief Crew">Relief Crew</option>
+                  <option value="Jump Seat">Jump Seat</option>
+                  <option value="All Crew">All Crew</option>
+                  <option value="Nobody(or Auditor)">Nobody(or Auditor)</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-[#1D2951] whitespace-nowrap">DETECTED BY:</span>
+                <select class="border border-gray-300 rounded px-2 py-1 text-sm bg-white font-bold min-w-[160px] outline-none" style="text-align-last: center;">
+                  <option value="-">-</option>
+                  <option value="Captain">Captain</option>
+                  <option value="First Officer">First Officer</option>
+                  <option value="Relief Crew">Relief Crew</option>
+                  <option value="Jump Seat">Jump Seat</option>
+                  <option value="All Crew">All Crew</option>
+                  <option value="Nobody(or Auditor)">Nobody(or Auditor)</option>
+                  <option value="ATC">ATC</option>
+                  <option value="Cabin Crew">Cabin Crew</option>
+                  <option value="Dispatch">Dispatch</option>
+                  <option value="Aircraft System">Aircraft System</option>
+                  <option value="Others">Others</option>
+                </select>
+              </div>
+            </div>
+           <div class="relative w-full">
+          <textarea 
+
+    oninput="autoResize(this)" 
+    data-section="uas" data-field="notes"
+    class="line-input min-h-[120px] overflow-hidden text-[13px] leading-relaxed text-left p-3 bg-white border border-[#1D2951] w-full" 
+    placeholder="Describe the UAS detail..."></textarea>
+          
+          <button type="button" 
+                  onclick="const rows = document.querySelectorAll('.${uniqueClass}'); rows.forEach(r => r.remove()); updateUasIds();" 
+                  class="no-print absolute right-2 top-2 text-red-500 font-bold w-7 h-7 flex items-center justify-center bg-white/90 rounded border border-red-200 shadow-sm active:bg-red-100 transition-colors z-10">
+            ✕
+          </button>
+        </div>
+      </div> </td>
+          </div>
+        </td>
+      `;
+      
+      tbody.appendChild(tr1);
+      tbody.appendChild(tr2);
+    }
+function updateUasIds() {
+  const headers = document.querySelectorAll('#uasBody tr.uas-group-header');
+  headers.forEach((row, idx) => {
+    const input = row.querySelector('.uas-id-display');
+    if (input) input.value = `U${idx + 1}`;
+  });
+}
+    function updateUasIds() {
+      const tbody = document.getElementById('uasBody');
+      const groups = tbody.querySelectorAll('.uas-group-header');
+      groups.forEach((tr, idx) => {
+        const idInput = tr.querySelector('input');
+        if (idInput) idInput.value = `U${idx + 1}`;
+      });
+    }
+
+window.onload = () => {
+  const obsBody = document.getElementById('obsBody');
+  if (obsBody) {
+    obsBody.innerHTML = ''; // 기존 내용 청소
+    
+    // 6개의 빈 행을 생성 (이제 addRow가 기본값 "-"를 가짐)
+    for (let i = 0; i < 6; i++) {
+      addRow({ phase: "-", obs: "" }); 
+    }
+  }
+
+  // Section 3 버튼 기능 활성화
+  if (typeof addThreatRow === 'function') addThreatRow();
+  if (typeof addErrorRow === 'function') addErrorRow();
+  if (typeof addUasRow === 'function') addUasRow();
+};
+
+    window.exportExcel = () => {
+      const wb = XLSX.utils.book_new();
+      const info = [ ["LINE OPERATION AUDIT WORKSHEET", "", "", "F-OPFQ-002"], ["Section 1. Information"], ["Auditor Name", document.getElementById('auditorName').value, "Auditor ID", "P"+document.getElementById('auditorId').value], ["Audit No", "LOA-"+document.getElementById('auditNumber').value], ["Route", document.getElementById('route').value, "TKO PF", document.getElementById('tkoPf').value, "LDG PF", document.getElementById('ldgPf').value], [], ["Section 2. TEM Worksheet"], ["Phase", "Observations"] ];
+      document.querySelectorAll('#obsBody tr').forEach(tr => { const row = Array.from(tr.querySelectorAll('select, textarea')).map(el => el.value); info.push(row); });
+      const ws = XLSX.utils.aoa_to_sheet(info);
+      XLSX.utils.book_append_sheet(wb, ws, "LOA_Report");
+      XLSX.writeFile(wb, `LOA_${document.getElementById('auditNumber').value || 'Report'}.xlsx`);
+    };
+
+// 1. 모달 창 열기 (네비게이션 버튼과 연결됨)
+window.resetForm = () => {
+  document.getElementById('resetModal').classList.remove('hidden');
+};
+
+// 2. 모달 창 닫기
+window.closeResetModal = () => {
+  document.getElementById('resetModal').classList.add('hidden');
+};
+
+// 3. 실제 리셋 실행 로직
+window.executeReset = (choice) => {
+  const isAll = choice === 'all';
+  
+  // Section 1 초기화
+if (isAll || choice === '1') {
+    // 텍스트 필드 초기화
+    document.querySelectorAll('#auditorName, #auditorId, #auditNumber').forEach(el => el.value = '');
+    
+    // 드롭다운(Route 포함) 초기화
+    const route = document.getElementById('route');
+    const tko = document.getElementById('tkoPf');
+    const ldg = document.getElementById('ldgPf');
+    
+    if (route) route.selectedIndex = 0; // 이 줄이 있어야 Route가 "-"로 돌아갑니다.
+    if (tko) tko.selectedIndex = 0;
+    if (ldg) ldg.selectedIndex = 0;
+  }
+
+// --- 추가할 내용 (C. CREW INFO & D. NOTES) ---
+    
+    // C. 경력 라디오 버튼 초기화 (name이 맞는지 확인 필요)
+    const crewRadios = ['captAp', 'captTot', 'foAp', 'foTot'];
+    crewRadios.forEach(name => {
+        document.getElementsByName(name).forEach(radio => radio.checked = false);
+    });
+
+    // D. 체크박스 및 메모장 초기화
+    const hazard = document.getElementById('hazardFlag');
+    const reco = document.getElementById('recoFlag');
+    const memo = document.getElementById('hazardDetail');
+
+    if (hazard) hazard.checked = false;
+    if (reco) reco.checked = false;
+    if (memo) memo.value = '';
+
+// Section 2 초기화 (이 부분을 교체)
+  if (isAll || choice === '2') {
+    const obsBody = document.getElementById('obsBody');
+    if (obsBody) {
+      obsBody.innerHTML = '';
+      // 특정 단계를 넣지 않고, 기본값 "-"인 행을 6개 만듭니다.
+      for (let i = 0; i < 6; i++) {
+        addRow({ phase: "-", obs: "" });
+      }
+    }
+  }
+
+  // Section 3 초기화
+  if (isAll || choice === '3') {
+    ['threatBody', 'errorBody', 'uasBody'].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.innerHTML = '';
+    });
+    if (typeof addThreatRow === 'function') addThreatRow();
+    if (typeof addErrorRow === 'function') addErrorRow();
+    if (typeof addUasRow === 'function') addUasRow();
+  }
+
+  closeResetModal(); // 리셋 후 창 닫기
+  // alert("초기화되었습니다."); // 필요 시 알림 활성화
+};
+
+  </script>
+<div id="resetModal" class="no-print fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm">
+  <div class="bg-white rounded-xl shadow-2xl p-6 w-80 border-2 border-[#1D2951]">
+    
+    <div id="reset-step1">
+      <h3 class="text-lg font-black text-[#1D2951] mb-4 text-center uppercase underline">Reset Section</h3>
+      <div class="grid grid-cols-1 gap-2">
+        <button onclick="confirmReset('1')" class="py-2 px-4 bg-slate-100 hover:bg-[#1D2951] hover:text-white font-bold rounded transition-colors text-sm text-left">1. Section 1 (Flight Info)</button>
+        <button onclick="confirmReset('2')" class="py-2 px-4 bg-slate-100 hover:bg-[#1D2951] hover:text-white font-bold rounded transition-colors text-sm text-left">2. Section 2 (Observations)</button>
+        <button onclick="confirmReset('3')" class="py-2 px-4 bg-slate-100 hover:bg-[#1D2951] hover:text-white font-bold rounded transition-colors text-sm text-left">3. Section 3 (Threat/Error/UAS)</button>
+        <button onclick="confirmReset('all')" class="py-2 px-4 bg-red-500 text-white hover:bg-red-700 font-extrabold rounded transition-colors text-sm text-center mt-2 uppercase italic">All Sections</button>
+      </div>
+      <button onclick="closeResetModal()" class="w-full mt-4 text-slate-400 text-xs font-bold hover:text-red-500 uppercase">Cancel</button>
+    </div>
+
+    <div id="reset-step2" class="hidden text-center">
+      <h3 class="text-lg font-black text-red-600 mb-2 uppercase">Are you sure?</h3>
+      <p class="text-sm text-slate-600 mb-6">데이터가 영구적으로 삭제됩니다.</p>
+      <input type="hidden" id="pendingSection"> <div class="flex gap-2">
+        <button onclick="finalExecuteReset()" class="flex-1 py-3 bg-red-600 text-white font-bold rounded shadow-lg">YES, RESET</button>
+        <button onclick="backToStep1()" class="flex-1 py-3 bg-slate-200 text-slate-700 font-bold rounded">NO</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Document App 환경을 위한 전용 제어 함수
+let targetSection = '';
+
+function confirmReset(section) {
+    targetSection = section;
+    document.getElementById('reset-step1').classList.add('hidden');
+    document.getElementById('reset-step2').classList.remove('hidden');
+}
+
+function backToStep1() {
+    document.getElementById('reset-step2').classList.add('hidden');
+    document.getElementById('reset-step1').classList.remove('hidden');
+}
+
+function finalExecuteReset() {
+    // 1. 기존 리셋 로직 실행
+    if(typeof executeReset === 'function') {
+        executeReset(targetSection);
+    }
+    
+    // 2. 화면 초기화 및 모달 닫기
+    backToStep1();
+    closeResetModal();
+}
+
+function finalSendToPDF(event) {
+    if (event) event.preventDefault();
+    
+    // 데이터 박제 로직
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(el => {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            if (el.checked) el.setAttribute('checked', 'checked');
+            else el.removeAttribute('checked');
+        } else if (el.tagName === 'SELECT') {
+            const options = el.querySelectorAll('option');
+            options.forEach(opt => {
+                if (opt.value === el.value) opt.setAttribute('selected', 'selected');
+                else opt.removeAttribute('selected');
+            });
+        } else {
+            el.setAttribute('value', el.value);
+            if (el.tagName === 'TEXTAREA') el.innerHTML = el.value;
+        }
+    });
+
+    // 즉시 인쇄 실행
+    window.print();
+}
+
+function autoResize(textarea) {
+    // 높이를 초기화하여 줄어들 때도 대응 가능하게 함
+    textarea.style.height = 'auto';
+    // 내용의 전체 높이(scrollHeight)만큼 textarea 높이 설정
+    textarea.style.height = textarea.scrollHeight + 'px';
+}
+</script>
+
+<script>
+// 1. 저장 함수: 모든 섹션의 '행 개수'와 '내용'을 한꺼번에 저장
+function saveIpadFullState() {
+    const state = {
+        // [중요] 추가된 행의 개수를 기억합니다.
+        rowCounts: {
+            threat: document.querySelectorAll('#threat-body tr').length,
+            error: document.querySelectorAll('#error-body tr').length,
+            uas: document.querySelectorAll('#uas-body tr').length
+        },
+        inputs: {}
+    };
+
+    // 모든 입력창의 값을 ID를 기준으로 저장
+    document.querySelectorAll('input, textarea, select').forEach(el => {
+        if (el.id) {
+            state.inputs[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
+        }
+    });
+
+    localStorage.setItem('loa_final_backup', JSON.stringify(state));
+}
+
+// 2. 복구 함수: 앱이 다시 켜질 때 '행'부터 만들고 '값'을 채움
+function restoreIpadFullState() {
+    const saved = localStorage.getItem('loa_final_backup');
+    if (!saved) return;
+
+    const state = JSON.parse(saved);
+
+    // [A] Section 2, 3에서 사라진 행들을 먼저 다시 생성 (그릇 복구)
+    // 기본 1행은 이미 있으므로 2행부터 추가 함수(addThreatRow 등)를 실행
+    if (state.rowCounts) {
+        for (let i = 1; i < state.rowCounts.threat; i++) { if(window.addThreatRow) window.addThreatRow(); }
+        for (let i = 1; i < state.rowCounts.error; i++) { if(window.addErrorRow) window.addErrorRow(); }
+        for (let i = 1; i < state.rowCounts.uas; i++) { if(window.addUasRow) window.addUasRow(); }
+    }
+
+    // [B] 행이 생성된 후(0.3초 뒤) 값을 채워 넣음
+    setTimeout(() => {
+        Object.keys(state.inputs).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (el.type === 'checkbox' || el.type === 'radio') el.checked = state.inputs[id];
+                else el.value = state.inputs[id];
+            }
+        });
+        console.log("모든 데이터(Section 1, 2, 3) 복구가 완료되었습니다.");
+    }, 300);
+}
+
+// 3. 아이패드 환경에 맞춘 자동 실행 설정
+window.addEventListener('load', restoreIpadFullState); // 앱이 켜질 때 복구
+document.addEventListener('input', saveIpadFullState); // 글자 쓸 때마다 저장
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveIpadFullState(); // 다른 앱 갈 때 저장
+});
+</script>
+</body>
+</html>
