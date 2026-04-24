@@ -1,1 +1,676 @@
-test
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procedural Error Checklist – AIR PREMIA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+    :root {
+        --sc: #1D2951; 
+        --gh: #f4f6f9; 
+        --highlight: #e8ecf3; 
+        --border: 1px solid #1D2951;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans KR', sans-serif; font-size: 13px; background: #ddd; padding: 20px; }
+    .toolbar { background: var(--sc); display: flex; align-items: center; gap: 10px; padding: 10px 15mm; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #000; width: 297mm; margin: 0 auto;}
+    .tb-btn { background: #fff; color: var(--sc); border: none; padding: 6px 15px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 13px; }
+    .tb-btn:hover { background: #eee; }
+    .page { background: #fff; width: 297mm; min-height: 200mm; margin: 0 auto; padding: 5mm 15mm 15mm 15mm; box-shadow: 0 0 15px rgba(0,0,0,0.5); position: relative; }
+    .header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--sc); padding-bottom: 10px; margin-bottom: 15px; }
+    .title { font-size: 22px; font-weight: 900; color: var(--sc); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
+    th, td { border: var(--border); padding: 6px; font-size: 11px; vertical-align: middle; }
+    th { background: var(--sc); color: #fff; text-align: center; }
+    .lbl { background: var(--gh); font-weight: bold; text-align: center; color: var(--sc); }
+    .lbl-highlight { background: var(--highlight) !important; font-weight: bold; text-align: center; color: var(--sc); }
+    select { 
+        width: auto; min-width: 80px; max-width: 100%; border: 1px solid #ccc; border-radius: 4px; font-size: 11px;
+        padding: 3px 20px 3px 6px; outline: none; background-color: #fff; font-family: inherit; cursor: pointer; appearance: none; -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231D2951' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat; background-position: right 4px center; background-size: 10px; transition: border-color 0.2s; display: inline-block;
+    }
+    select:focus { border-color: var(--sc); }
+    input[type="text"], input[type="number"], textarea { width: 100%; border: none; border-bottom: 1px solid #ccc; font-size: 12px; padding: 2px; outline: none; background: transparent; }
+    textarea { height: 100px; resize: none; border: 1px solid #ccc; padding: 8px; margin-top: 5px; background: #fff; border-radius: 4px; }
+    .sec-title { background: none; color: var(--sc); padding: 4px 0; font-weight: bold; margin-bottom: 2px; display: inline-block; font-size: font-weight: 900; 14px; border-radius: 2px 2px 0 0; }
+    
+    .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); }
+    .modal-content { background-color: #fff; margin: 2% auto; padding: 25px; border-radius: 8px; width: 90%; max-height: 95vh; overflow-y: auto; position: relative; }
+    
+    .reset-modal { display: none; position: fixed; z-index: 300; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+    .reset-modal-content { background: #fff; padding: 25px; border-radius: 8px; text-align: center; width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .reset-btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+    .btn-confirm { background: #ff4d4d; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .btn-cancel { background: #eee; color: #000; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+    .close-btn { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: var(--sc); font-weight: bold; }
+    .modal-h { font-size: 17px; font-weight: bold; border-bottom: 2px solid var(--sc); margin-bottom: 20px; padding-bottom: 5px; color: var(--sc); }
+    
+    .ref-table th { background: var(--sc); color: #fff; font-weight: 900; padding: 8px; text-align: center; font-size: 18px; }
+    .ref-table td { padding: 6px; line-height: 1.4; border: 1px solid var(--sc); font-size: 18px; color: #000; font-weight: 500; }
+    .ref-cat { background: var(--gh); font-weight: 900 !important; text-align: center; color: var(--sc); font-size: 12px; }
+    .editable-td { background: #fff; color: #000; text-align: center; font-weight: 900; }
+    
+  /* 평소 화면에서는 인쇄용 div를 숨김 */
+#print-remark {
+    display: none;
+}
+
+@media print {
+    /* 1. 인쇄 시 textarea를 숨기고 인쇄 전용 div 노출 */
+    textarea {
+        display: none !important;
+    }
+
+    #print-remark {
+        display: block !important;
+        width: 100% !important;
+        min-height: 100px;
+        border: 1px solid #1D2951 !important;
+        padding: 10px !important;
+        font-size: 13px !important;
+        line-height: 1.6 !important;
+        white-space: pre-wrap !important; /* 줄바꿈 유지 */
+        word-wrap: break-word !important;
+        color: #000 !important;
+        background: #fff !important;
+    }
+
+    /* 2. 툴바 및 모달 등 불필요한 요소 숨김 */
+    .toolbar, .tb-btn, .reset-modal, .modal, .no-print { 
+        display: none !important; 
+    }
+
+    /* 3. 페이지 설정 및 강제 페이지 넘김 추가 */
+    .page {
+        width: 280mm !important; 
+        margin: 0 auto !important;
+        padding: 10mm !important;
+        box-shadow: none !important;
+        
+        /* 핵심: 여러 페이지 생성 시 인쇄물에서 페이지를 강제로 나눕니다 */
+        page-break-after: always; 
+        position: relative;
+    }
+
+    /* 마지막 페이지 뒤에는 빈 페이지가 생기지 않도록 설정 (선택사항) */
+    .page:last-child {
+        page-break-after: auto;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <span style="color:#fff; font-weight:bold; font-size: 20px; margin-right: auto;">AIR PREMIA</span>
+
+<div id="tabs-container" style="display: flex; gap: 5px; margin-right: auto;"></div>
+    <button class="tb-btn" style="background:#4a90e2; color:#fff;" onclick="openModal('refModal1')">ERROR CODE GUIDANCE</button>
+    <button class="tb-btn" style="background:#4a90e2; color:#fff;" onclick="openModal('refModal2')">ROOT CAUSE & FACTORS GUIDANCE</button>
+    <button class="tb-btn" style="background:#F06292; color:#fff;" onclick="addNewPage()">ADD PAGE</button>
+    <button class="tb-btn" style="background:#27ae60; color:#fff;" onclick="savePDF()">PDF 저장</button>
+    <button class="tb-btn" style="background:#ff4d4d; color:#fff;" onclick="resetForm()">양식 초기화</button>
+</div>
+
+<template id="page-template">
+    <div class="page" style="margin-bottom: 20px;">
+        <div class="header">
+        <div>
+            <div class="title">Procedural Error Checklist</div>
+            <div style="font-weight:bold; color:var(--sc); font-size: 13px;">AIR PREMIA · Flight Quality Assurance Team</div>
+        </div>
+    </div>
+
+    <div class="sec-title">1. FLIGHT INFORMATION</div>
+    <table>
+        <tr>
+            <td class="lbl-highlight" style="width:110px;">ROUTE</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <optgroup label="JAPAN / ASIA">
+                    <option>ICN-NRT</option><option>NRT-ICN</option>
+                    <option>ICN-HKG</option><option>HKG-ICN</option>
+                    <option>ICN-DAD</option><option>DAD-ICN</option>
+                    <option>ICN-BKK</option><option>BKK-ICN</option>  
+                    </optgroup>
+                    <optgroup label="AMERICA (West)">
+                    <option>ICN-HNL</option><option>HNL-ICN</option>
+                    <option>ICN-SFO</option><option>SFO-ICN</option>
+                    <option>ICN-LAX</option><option>LAX-ICN</option>
+                    </optgroup>
+                    <optgroup label="AMERICA (East)">
+                    <option>ICN-EWR</option><option>EWR-ICN</option>
+                    <option>ICN-IAD</option><option>IAD-ICN</option>
+                </select>
+            </td>
+            <td class="lbl-highlight" style="width:110px;">TKO / LAND</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>CAPT / CAPT</option><option>FO / FO</option><option>CAPT / FO</option><option>FO / CAPT</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="lbl-highlight">PHASE</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>PreDep / Taxi</option><option>TKO / CLB</option><option>CRZ</option><option>DES / APP / LDG</option><option>TAXI-IN</option><option>ALL</option>
+                </select>
+            </td>
+            <td class="lbl-highlight">AUDITOR</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>고희덕</option><option>박병열</option><option>윤태선</option><option>정재훈</option><option>정진수</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+
+    <div class="sec-title">2. ERROR IDENTIFICATION</div>
+    <table>
+        <tr>
+            <td class="lbl-highlight" style="width:110px;">ERROR NUMBER</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>E1</option><option>E2</option><option>E3</option><option>E4</option><option>E5</option><option>E6</option>
+                </select>
+            </td>
+            <td class="lbl" style="width:110px;">ERROR CODE</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <optgroup label="SOP">
+                    <option>200. Failure to cross-verify MCP / FMS / CDU / FMA mode changes</option>
+                    <option>201. Failure to cross-verify altimeter settings</option>
+                    <option>202. Failure to cross-verify ATC clearances</option>
+                    <option>203. Failure to execute a go-around after passing procedural bottom lines of an unstable approach</option>
+                    <option>204. Sterile cockpit violations</option>
+                    <option>205. Performing correct task procedures out of sequence</option>
+                    <option>206. PF makes own MCP / FMS changes</option>
+                    <option>207. PF makes own Flight control setting</option>
+                    <option>208. Both pilots head down</option>
+                    <option>209. PM/PF duty allocation not clear</option>
+                    <option>210. Omitted handover procedures – Flight control / communication</option>
+                    <option>211. Setting altimeters before the transition altitude</option>
+                    <option>212. Using equipment placarded INOP</option>
+                    <option>213. A/C operation with unresolved MEL</option>
+                    <option>214. Failure to cross-verify paperwork or documentation</option>
+                    <option>229. Other SOPs errors</option>
+                    <optgroup label="Checklist">
+                    <option>230. Missed Checklist item</option>
+                    <option>231. Omitted / forgot Checklist</option>
+                    <option>232. Wrong Checklist performed</option>
+                    <option>233. Checklist performed late or wrong time</option>
+                    <option>234. Incorrect challenge and response</option>
+                    <option>235. Response without verification</option>
+                    <option>236. Completed Checklist not called “complete”</option>
+                    <option>237. Checklist performed by memory</option>
+                    <option>238. Self-initiated / performed Checklist</option>
+                    <option>249. Other Checklist errors</option>
+                    <optgroup label="Briefing">
+                    <option>250. Incomplete or omitted T/O briefing</option>
+                    <option>251. Incomplete or omitted approach briefing</option>
+                    <option>252. Incomplete or omitted Flight attendant briefing</option>
+                    <option>253. Incomplete or omitted engine-out briefing</option>
+                    <option>259. Other briefing errors</option>
+                    <optgroup label="Callout">
+                    <option>260. Omitted callouts</option>
+                    <option>261. Incorrect callouts</option>
+                    <option>269. Other callout errors</option>
+                    <optgroup label="Documentation">
+                    <option>270. Incorrect weight and balance read</option>
+                    <option>271. Incorrect fuel information recorded</option>
+                    <option>272. Misinterpreted items on the documents (Flight plan / WX charts / NOTAM / dispatch release / FMLB)</option>
+                    <option>273. Missed items on the documents</option>
+                    <option>274. Incorrect runway information recorded</option>
+                    <option>275. Incorrect performance calculations</option>
+                    <option>276. Incorrect ATIS / ATC clearance recorded</option>
+                    <option>277. Incorrect application of MEL</option>
+                    <option>278. Incorrect application of manuals / charts</option>
+                    <option>279. Omitted / incorrect FMLB entries</option>
+                    <option>289. Other documentation errors</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="lbl" style="width:110px;">ERROR TYPE</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Omission</option><option>Incorrect action</option><option>Wrong sequence</option><option>Late execution</option><option>Monitoring failure</option><option>All</option>
+                </select>
+            </td>
+            <td class="lbl-highlight" style="width:110px;">DETECTION TIME</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Immediate (during task)</option><option>Delayed (later stage)</option><option>Undetected</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="lbl-highlight">COMMITTED BY</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Capt</option><option>FO</option><option>PF(Capt)</option><option>PF(FO)</option><option>PM(Capt)</option><option>PM(FO)</option><option>All Crew</option>
+                </select>
+            </td>
+            <td class="lbl-highlight">DETECTED BY</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Capt</option><option>FO</option><option>PF(Capt)</option><option>PF(FO)</option><option>PM(Capt)</option><option>PM(FO)</option><option>All Crew</option><option>Safety Crew</option><option>Observer</option><option>ATC</option><option>Cabin Crew</option><option>Dispatch</option><option>Ground staff</option><option>Aircraft system</option><option>Nobody(or Auditor)</option><option>Others</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+
+    <div class="sec-title">3. CREW STATE</div>
+    <table>
+        <tr>
+            <td class="lbl" style="width:110px;">FATIGUE</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Low</option><option>Medium</option><option>High</option><option>None</option>
+                </select>
+            </td>
+            <td class="lbl" style="width:110px;">ATTENTION</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Normal scan</option><option>Channelized</option><option>Fixation</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="lbl" style="width:110px;">WORKLOAD</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Low</option><option>Medium</option><option>High</option><option>None</option>
+                </select>
+            </td>
+            <td class="lbl" style="width:110px;">COMMUNICATION</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Standard</option><option>Reduced</option><option>Ineffective</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="lbl" style="width:110px;">TIME PRESSURE</td>
+            <td>
+                <select style="width:100%;">
+                    <option value="">— Select —</option>
+                    <option>Low</option><option>Medium</option><option>High</option><option>None</option>
+                </select>
+            </td>
+            <td colspan="2" style="background: #f9f9f9; border: none;"></td>
+        </tr>
+    </table>
+    
+    <div class="sec-title">4. CRM COUNTERMEASURES</div>
+    <table>
+        <tr>
+            <td class="lbl">BRIEFING PERFORMANCE</td>
+            <td class="lbl">MONITORING (PF/PM)</td>
+            <td class="lbl">CROSS-CHECK</td>
+            <td class="lbl">CHALLENGE</td>
+            <td class="lbl">INTERVENTION</td>
+        </tr>
+        <tr>
+            <td><select style="width:100%;"><option value="">— Select —</option><option>Effective</option><option>Ineffective</option><option>None</option><option>N/A</option></select></td>
+            <td><select style="width:100%;"><option value="">— Select —</option><option>Effective</option><option>Ineffective</option><option>None</option></select></td>
+            <td><select style="width:100%;"><option value="">— Select —</option><option>Effective</option><option>Ineffective</option><option>None</option></select></td>
+            <td><select style="width:100%;"><option value="">— Select —</option><option>Effective</option><option>Ineffective</option><option>None</option></select></td>
+            <td><select style="width:100%;"><option value="">— Select —</option><option>Too Early</option><option>Timely</option><option>Late</option><option>None</option></select></td>
+        </tr>
+    </table>
+
+    <div class="sec-title">5. ROOT CAUSE CLASSIFICATION</div>
+  <table>
+    <tr>
+        <td class="lbl-highlight" style="width: 20%;">ROOT CAUSE</td>
+
+        <td colspan="4" style="padding: 0; border-left: none;">
+            <div style="display: flex; width: 100%;">
+                <div style="width: 25%; padding: 5px; box-sizing: border-box;">
+                    <select style="width: 100%;">
+                <option value="">— Select —</option>
+                <option>Slip</option>
+                <option>Lapse</option>
+                <option>Mistake</option>
+                <option>Intentional deviation</option>
+                <option>Training gap</option>
+                <option>SOP design issue</option>
+                <option>CRM breakdown</option>
+                <option>Environmental factor</option>
+                <option>Organizational factor</option>
+            </select>
+                </div>
+                <div style="flex: 1;"></div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+    <div class="sec-title">6. REMARKS</div>
+    <div style="width: 100%;"><textarea oninput="autoResize(this)" placeholder="Enter remarks here..." style="overflow:hidden; resize:none;"></textarea><div id="print-remark"></div>
+</div>
+</div> 
+</template> <div id="all-pages-container"></div>
+
+<div id="refModal1" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('refModal1')">&times;</span>
+        <div class="modal-h">ERROR CODE GUIDANCE: Procedural Error Code Reference</div>
+        <div>
+            <table class="ref-table">
+                <thead><tr><th style="width:16%;">Category</th><th style="width:8%;">Code</th><th style="width:55%;">Error Description</th><th style="width:20%;">Error Type</th></tr></thead>
+                <tbody>
+                    <tr><td rowspan="16" class="ref-cat">SOPs</td><td style="text-align:center;">200</td><td>Failure to cross-verify MCP / FMS / CDU / FMA mode changes</td><td class="editable-td">Monitoring Failure</td></tr>
+                    <tr><td style="text-align:center;">201</td><td>Failure to cross-verify altimeter settings</td><td class="editable-td">Monitoring Failure</td></tr>
+                    <tr><td style="text-align:center;">202</td><td>Failure to cross-verify ATC clearances</td><td class="editable-td">Monitoring Failure</td></tr>
+                    <tr><td style="text-align:center;">203</td><td>Failure to execute a go-around 후 unstable approach</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">204</td><td>Sterile cockpit violations</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">205</td><td>Performing correct task procedures out of sequence</td><td class="editable-td">Wrong Sequence</td></tr>
+                    <tr><td style="text-align:center;">206</td><td>PF makes own MCP / FMS changes</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">207</td><td>PF makes own Flight control setting</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">208</td><td>Both pilots head down</td><td class="editable-td">Monitoring Failure</td></tr>
+                    <tr><td style="text-align:center;">209</td><td>PM/PF duty allocation not clear</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">210</td><td>Omitted handover procedures</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">211</td><td>Setting altimeters before transition altitude</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">212</td><td>Using equipment placarded INOP</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">213</td><td>A/C operation with unresolved MEL</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">214</td><td>Failure to cross-verify paperwork</td><td class="editable-td">Monitoring Failure</td></tr>
+                    <tr><td style="text-align:center;">229</td><td>Other SOPs errors</td><td class="editable-td">All</td></tr>
+                    <tr><td rowspan="10" class="ref-cat">Checklists</td><td style="text-align:center;">230</td><td>Missed Checklist item</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">231</td><td>Omitted / forgot Checklist</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">232</td><td>Wrong Checklist performed</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">233</td><td>Checklist performed late or wrong time</td><td class="editable-td">Late Execution</td></tr>
+                    <tr><td style="text-align:center;">234</td><td>Incorrect challenge and response</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">235</td><td>Response without verification</td><td class="editable-td">Monitoring Failure</td></tr>
+                    <tr><td style="text-align:center;">236</td><td>Completed Checklist not called “complete”</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">237</td><td>Checklist performed by memory</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">238</td><td>Self-initiated / performed Checklist</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">249</td><td>Other Checklist errors</td><td class="editable-td">All</td></tr>
+                    <tr><td rowspan="5" class="ref-cat">Briefings</td><td style="text-align:center;">250</td><td>Incomplete or omitted T/O briefing</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">251</td><td>Incomplete or omitted approach briefing</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">252</td><td>Incomplete or omitted Flight attendant briefing</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">253</td><td>Incomplete or omitted engine-out briefing</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">259</td><td>Other briefing errors</td><td class="editable-td">All</td></tr>
+                    <tr><td rowspan="3" class="ref-cat">Callouts</td><td style="text-align:center;">260</td><td>Omitted callouts</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">261</td><td>Incorrect callouts</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">269</td><td>Other callout errors</td><td class="editable-td">All</td></tr>
+                    <tr><td rowspan="11" class="ref-cat">Documentation</td><td style="text-align:center;">270</td><td>Incorrect weight and balance read</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">271</td><td>Incorrect fuel information recorded</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">272</td><td>Misinterpreted items on the documents</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">273</td><td>Missed items on the documents</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">274</td><td>Incorrect runway information recorded</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">275</td><td>Incorrect performance calculations</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">276</td><td>Incorrect ATIS / ATC clearance recorded</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">277</td><td>Incorrect application of MEL</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">278</td><td>Incorrect application of manuals / charts</td><td class="editable-td">Incorrect Action</td></tr>
+                    <tr><td style="text-align:center;">279</td><td>Omitted / incorrect FMLB entries</td><td class="editable-td">Omission</td></tr>
+                    <tr><td style="text-align:center;">289</td><td>Other documentation errors</td><td class="editable-td">All</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="refModal2" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('refModal2')">&times;</span>
+        <div class="modal-h">ROOT CAUSE & FACTORS GUIDANCE</div>
+        
+        <div style="margin-bottom: 30px;">
+            <div style="font-weight:900; margin-bottom:8px; color:var(--sc); font-size:20px; border-left: 4px solid var(--sc); padding-left: 8px;">Root Cause Classification (Root Cause 정의 및 판단기준)</div>
+            <table class="ref-table">
+                <thead><tr><th style="width:12%;">구 분</th><th style="width:20%;">정 의</th><th style="width:23%;">판단 기준</th><th style="width:28%;">예 시</th><th style="width:17%;">비 고</th></tr></thead>
+                <tbody>
+                    <tr><td class="ref-cat">Slip</td><td>알고 있었고 수행 의도도 있었지만 실행 과정에서 실수한 경우</td><td>절차 이해는 정확했음, 수행 직전까지 인지 상태 정상, 행동 단계에서 실수 발생</td><td>스위치 잘못 선택, 숫자 입력 오타, 레버 반대 방향 조작</td><td>→ 잘못 판단 시 Mistake</td></tr>
+                    <tr><td class="ref-cat">Lapse</td><td>해야 한다는 사실 자체를 순간적으로 기억하지 못함</td><td>행동 자체가 발생하지 않음, Reminder 없으면 계속 누락</td><td>Checklist item skip, Callout 미실시, After takeoff flow 중 항목 누락</td><td>→ 기억 못함</td></tr>
+                    <tr><td class="ref-cat">Mistake</td><td>행동은 의도적으로 했지만 판단이 틀린 경우</td><td>본인은 맞다고 믿고 수행, SOP 또는 규정 이해 오류</td><td>잘못된 flap 선택, 잘못된 speed 계산, Limitation 오해</td><td></td></tr>
+                    <tr><td class="ref-cat">Intentional Deviation</td><td>SOP를 알고 있었지만 의도적으로 따르지 않음</td><td>시간 단축 / 편의 / 습관 목적, 위험 인지했지만 실행</td><td>Briefing 생략, Checklist shortcut, OP 순서 변경</td><td></td></tr>
+                    <tr><td class="ref-cat">Training Gap</td><td>훈련 내용 또는 숙련 부족 때문에 발생</td><td>절차 자체 이해 불완전 수행, 속도 현저히 느림, 반복 오류 발생</td><td>Rare procedure 수행 실패, Memory item recall 실패</td><td></td></tr>
+                    <tr><td class="ref-cat">SOP Design Issue</td><td>절차 구조 자체가 오류 유발이 가능하게 설계됨</td><td>동일 SOP 반복 오류 발생, 여러 crew에서 동일 실수 발생</td><td>Step sequence 비직관적, 작업 흐름과 불일치, Callout timing 모호</td><td></td></tr>
+                    <tr><td class="ref-cat">CRM Breakdown</td><td>Crew interaction 문제로 오류 발생 또는 확대</td><td>Cross-check 있었으면 예방 가능, Monitoring 있었으면 탐지 가능</td><td>PM monitoring 실패, Challenge 안함, Authority gradient 영향</td><td></td></tr>
+                    <tr><td class="ref-cat">Organizational Factor</td><td>개인이나 절차의 문제가 아니라 조직 환경의 영향</td><td>스케줄 압박, 문화적 shortcut 허용 분위기, SOP training 부족</td><td>Turnaround 압박 때문에 checklist rush, Fleet 전체 shortcut</td><td></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <div style="font-weight:900; margin-bottom:8px; color:var(--sc); font-size:20px; border-left: 4px solid var(--sc); padding-left: 8px;">Workload (작업 부하)</div>
+            <table class="ref-table">
+                <thead><tr><th style="width:12%;">구 분</th><th style="width:20%;">정 의</th><th style="width:23%;">판단 기준</th><th style="width:28%;">예 시</th><th style="width:17%;">비 고</th></tr></thead>
+                <tbody>
+                    <tr><td class="ref-cat">None</td><td>작업 요구 거의 없음</td><td>단일 단순 task, 시간적 여유 충분, 인지 부하 거의 없음</td><td>대기 상태, monitoring only</td><td>부하 없음</td></tr>
+                    <tr><td class="ref-cat">Low</td><td>단일 또는 단순 작업 수행</td><td>시간 압박 거의 없음, 여유 있는 상황 인지 가능</td><td>단일 또는 단순 작업 수행, 시간 압박 거의 없음, 여유 있는 상황 인지 가능, routine task, interruption 없음</td><td>정상 여유</td></tr>
+                    <tr><td class="ref-cat">Medium</td><td>여러 작업 동시 수행</td><td>일정 수준의 time pressure, task prioritization 필요, 집중 필요한 상황</td><td>multitasking, coordination 필요</td><td>주의 필요</td></tr>
+                    <tr><td class="ref-cat">High</td><td>작업 요구가 개인 능력에 근접하거나 초과</td><td>강한 time pressure, 빈번한 interruption, situational awareness 유지 어려움</td><td>task overload, emergency 대응</td><td>과부하</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <div style="font-weight:900; margin-bottom:8px; color:var(--sc); font-size:20px; border-left: 4px solid var(--sc); padding-left: 8px;">Attention (주의 집중 상태)</div>
+            <table class="ref-table">
+                <thead><tr><th style="width:12%;">구 분</th><th style="width:20%;">정 의</th><th style="width:23%;">판단 기준</th><th style="width:28%;">예 시</th><th style="width:17%;">비 고</th></tr></thead>
+                <tbody>
+                    <tr><td class="ref-cat">Normal Scan</td><td>체계적으로 여러 정보원 스캔</td><td>계기와 외부 환경을 체계적으로 스캔하며 여러 정보원에 주의를 분산하여 상황인식을 유지하는 상태</td><td>PFD / ND / engine / outside view를 주기적으로 확인, ATC / PM cross-check 정상, abnormal fixation 없음</td><td>abnormal fixation 없음</td></tr>
+                    <tr><td class="ref-cat">Channelized</td><td>특정 작업에 주의 집중</td><td>특정 작업이나 정보원에 주의가 집중되어 다른 관련 정보에 대한 모니터링이 감소한 상태</td><td>FMS programming에 집중하면서 altitude deviation monitoring 감소, abnormal checklist 수행 중 flight path monitoring 감소</td><td>주의 협착</td></tr>
+                    <tr><td class="ref-cat">Fixation</td><td>한 가지 요소에 고착됨</td><td>단일 문제나 작업에 주의가 지속적으로 집중되어 변화하는 상황이나 다른 중요한 정보가 적절히 인지되지 않는 상태</td><td>FMS 문제 해결에 집착, landing gear 문제 해결 중 altitude deviation 인지 못함</td><td>위험 상태</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <div style="font-weight:900; margin-bottom:8px; color:var(--sc); font-size:20px; border-left: 4px solid var(--sc); padding-left: 8px;">Time Pressure (시간 압박)</div>
+            <table class="ref-table">
+                <thead><tr><th style="width:12%;">구 분</th><th style="width:40%;">판단 기준</th><th style="width:48%;">상세 설명</th></tr></thead>
+                <tbody>
+                    <tr><td class="ref-cat">None</td><td>시간 여유 충분</td><td>긴급한 결정이나 조치가 필요 없는 안정적인 상태</td></tr>
+                    <tr><td class="ref-cat">Low</td><td>약간의 시간 제약</td><td>일반적인 절차 수행에는 문제가 없으나 시간 관리가 시작되는 단계</td></tr>
+                    <tr><td class="ref-cat">Medium</td><td>작업 우선순위 조정 필요</td><td>가용한 시간 내에 작업을 마치기 위해 효율적인 우선순위 배분이 필요한 상태</td></tr>
+                    <tr><td class="ref-cat">High</td><td>즉각적인 대응 요구</td><td>매우 촉박한 시간 내에 결정과 행동이 이루어져야 하는 높은 압박 상태</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <div style="font-weight:900; margin-bottom:8px; color:var(--sc); font-size:20px; border-left: 4px solid var(--sc); padding-left: 8px;">Fatigue (피로도)</div>
+            <table class="ref-table">
+                <thead><tr><th style="width:12%;">구 분</th><th style="width:40%;">정 의</th><th style="width:48%;">예 시</th></tr></thead>
+                <tbody>
+                    <tr><td class="ref-cat">None</td><td>피로 징후가 없으며 주의력과 인지 기능이 정상적으로 유지되는 상태</td><td>alertness 정상, 집중력 저하 없음, 반응속도 정상</td></tr>
+                    <tr><td class="ref-cat">Low</td><td>경미한 피로가 있으나 작업 수행과 상황 인식에는 거의 영향을 주지 않는 상태</td><td>약간의 피로감, 집중력 유지 가능, 수행 능력 영향 미미, 장시간 근무 초기 단계</td></tr>
+                    <tr><td class="ref-cat">Medium</td><td>피로로 인해 집중력과 주의 분배 능력이 감소하며 작업 수행에 일부 영향을 줄 수 있는 상태</td><td>집중력 감소, 주의 분산 어려움, 반응속도 약간 저하, 장시간 비행 후반, 수면 부족</td></tr>
+                    <tr><td class="ref-cat">High</td><td>심한 피로로 인해 주의력, 판단력 또는 상황인식이 현저히 저하된 상태</td><td>alertness 크게 감소, monitoring 능력 저하, error risk 증가, severe sleep loss, 장시간 duty 후반</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="resetModal" class="reset-modal">
+    <div class="reset-modal-content">
+        <p style="font-weight: bold; font-size: 18px; line-height: 1.5;">입력 내용이 모두 삭제됩니다.<br>계속 하시겠습니까?</p>
+        <div class="reset-btn-group">
+            <button class="btn-confirm" onclick="confirmReset()">초기화</button>
+            <button class="btn-cancel" onclick="closeResetModal()">취소</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function resetForm() { document.getElementById('resetModal').style.display = 'flex'; }
+    function closeResetModal() { document.getElementById('resetModal').style.display = 'none'; }
+    function confirmReset() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(sel => sel.selectedIndex = 0);
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(ins => ins.value = '');
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(txt => txt.value = '');
+        closeResetModal();
+    }
+    window.onclick = function(event) {
+        if (event.target.className === 'modal') {
+            event.target.style.display = "none";
+        }
+        if (event.target === document.getElementById('resetModal')) {
+            closeResetModal();
+        }
+    };
+
+function autoResize(obj) {
+    obj.style.height = 'auto'; // 높이 초기화
+    obj.style.height = obj.scrollHeight + 'px'; // 내용 높이만큼 박스 늘리기
+}
+
+// PDF 저장 버튼을 누를 때도 한 번 더 실행되도록 savePDF 함수를 보완합니다.
+function savePDF() {
+    const textarea = document.querySelector('textarea');
+    const printDiv = document.getElementById('print-remark');
+    
+    // 1. textarea의 내용을 인쇄용 div에 복사 (줄바꿈 보존)
+    if (textarea && printDiv) {
+        printDiv.innerText = textarea.value;
+    }
+
+    // 2. 브라우저 인쇄창 호출
+    window.print();
+}
+
+/* --- 임시 저장 시스템 추가 --- */
+
+// 1. 페이지 로드 시 저장된 데이터 불러오기
+window.addEventListener('DOMContentLoaded', () => {
+    loadFormData();
+    
+    // 모든 입력 요소에 변경 감지 이벤트 리스너 등록
+    const inputs = document.querySelectorAll('select, input, textarea');
+    inputs.forEach((el, index) => {
+        el.addEventListener('input', () => saveFormData());
+        // 개별 요소 식별을 위해 데이터 인덱스 부여 (선택사항)
+        el.setAttribute('data-save-id', index);
+    });
+});
+
+// 2. 현재 입력된 모든 데이터를 localStorage에 저장
+function saveFormData() {
+    const formData = {};
+    const inputs = document.querySelectorAll('select, input, textarea');
+    
+    inputs.forEach((el, index) => {
+        formData[index] = el.value;
+    });
+    
+    localStorage.setItem('ap_checklist_draft', JSON.stringify(formData));
+    console.log("임시 저장 완료");
+}
+
+// 3. 저장된 데이터를 불러와서 화면에 세팅
+function loadFormData() {
+    const savedData = localStorage.getItem('ap_checklist_draft');
+    if (!savedData) return;
+    
+    const formData = JSON.parse(savedData);
+    const inputs = document.querySelectorAll('select, input, textarea');
+    
+    inputs.forEach((el, index) => {
+        if (formData[index] !== undefined) {
+            el.value = formData[index];
+        }
+    });
+    
+    // 텍스트 영역 높이 재조정 (내용이 있을 경우)
+    const textarea = document.querySelector('textarea');
+    if (textarea) autoResize(textarea);
+}
+
+function confirmReset() {
+    const selects = document.querySelectorAll('select');
+    selects.forEach(sel => sel.selectedIndex = 0);
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(ins => ins.value = '');
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(txt => {
+        txt.value = '';
+        txt.style.height = '100px'; // 높이 초기화
+    });
+    
+    // 저장된 데이터 삭제 추가
+    localStorage.removeItem('ap_checklist_draft');
+    
+    closeResetModal();
+}
+
+// 새 페이지 추가 함수
+function addNewPage() {
+    const container = document.getElementById('all-pages-container');
+    const template = document.getElementById('page-template');
+    
+    // 템플릿 복제
+    const newPage = template.content.cloneNode(true);
+    
+    // 새 페이지 내의 textarea에 autoResize 이벤트 연결
+    const textarea = newPage.querySelector('textarea');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+        
+        // 인쇄용 div에도 내용 동기화
+        const printDiv = this.parentElement.querySelector('#print-remark');
+        if (printDiv) printDiv.innerText = this.value;
+    });
+
+    container.appendChild(newPage);
+    
+    // 페이지 번호 업데이트 (선택 사항)
+    updatePageNumbers();
+}
+
+// 페이지 번호 자동 계산
+function updatePageNumbers() {
+    const pages = document.querySelectorAll('#all-pages-container .page-number');
+    pages.forEach((el, index) => {
+        el.innerText = `Page ${index + 1} of ${pages.length}`;
+    });
+}
+
+// 초기 실행: 페이지 로드 시 첫 번째 빈 양식 자동 생성
+window.addEventListener('DOMContentLoaded', () => {
+    addNewPage();
+});
+
+// 양식 초기화 로직 보완
+function confirmReset() {
+    const container = document.getElementById('all-pages-container');
+    container.innerHTML = ''; // 모든 페이지 삭제
+    addNewPage();             // 깨끗한 첫 페이지 생성
+    localStorage.removeItem('ap_checklist_draft');
+    closeResetModal();
+}
+
+
+</script>
+
+</body>
+</html>
