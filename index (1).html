@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="loa-build" content="2026.11.13-1">
+<title>LOA Worksheet (F-OPFQ-002)</title>
+<meta name="theme-color" content="#1D2951">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="LOA Work">
+<link rel="apple-touch-icon" href="app-icon.png">
+<!--
+  LOA Worksheet (F-OPFQ-002) — 세로형 / 오프라인 버전
+  - 외부 인터넷 파일을 하나도 쓰지 않습니다. 이 파일 하나에 화면·기능·코드표가 모두 들어 있습니다.
+  - sw.js 는 이 파일을 iPad에 저장해 두는 역할만 합니다. (홈 화면 앱으로 인터넷 없이 열기)
+  - JSON 내보내기 형식은 기존 워크시트와 동일합니다. (LOA Data Management 매크로 호환)
+-->
+<style>
+:root{
+  --navy:#1D2951; --navy-2:#2b3a6b; --ink:#1f2937; --muted:#6b7280; --line:#d6dae6;
+  --bg:#eef0f5; --card:#fff; --soft:#f5f6fa; --red:#dc2626; --green:#15803d; --amber:#b45309;
+  --r:12px; --tap:44px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",Arial,sans-serif;
+  font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+
+/* ── Header ── */
+.top{position:sticky;top:0;z-index:50;background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 16px 0}
+.top-row{display:flex;align-items:center;gap:10px;max-width:900px;margin:0 auto}
+.brand{font-weight:900;letter-spacing:.02em;font-size:17px;line-height:1.1}
+.brand small{display:block;font-weight:600;font-size:11px;opacity:.75;letter-spacing:.04em}
+.save-state{margin-left:auto;font-size:12px;opacity:.85;white-space:nowrap}
+.save-state b{color:#86efac}
+.hbtn{min-height:38px;padding:0 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.55);background:transparent;color:#fff;font-weight:800;font-size:13px;letter-spacing:.03em}
+.hbtn.primary{background:#fff;color:var(--navy);border-color:#fff}
+.hbtn:active{transform:scale(.97)}
+.tabs{display:flex;gap:4px;max-width:900px;margin:10px auto 0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:max-content;min-height:44px;padding:0 12px;border:0;background:transparent;color:rgba(255,255,255,.7);font-weight:800;font-size:14px;border-bottom:3px solid transparent}
+.tab.on{color:#fff;border-bottom-color:#fff}
+.tab .n{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;border-radius:10px;background:rgba(255,255,255,.18);font-size:12px}
+
+/* ── Layout ── */
+main{max-width:900px;margin:0 auto;padding:16px 14px calc(40px + env(safe-area-inset-bottom))}
+.panel{display:none}
+.panel.on{display:block}
+.sec-title{display:flex;align-items:center;gap:10px;margin:6px 2px 12px}
+.sec-title h2{margin:0;font-size:19px;font-weight:900;color:var(--navy)}
+.sec-title .sub{font-size:13px;color:var(--muted)}
+.card{background:var(--card);border-radius:var(--r);box-shadow:0 1px 2px rgba(16,24,40,.06),0 0 0 1px rgba(29,41,81,.06);padding:16px;margin-bottom:14px}
+.card h3{margin:0 0 12px;font-size:15px;font-weight:900;color:var(--navy);letter-spacing:.01em}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+@media (max-width:560px){.g2,.g3{grid-template-columns:1fr}}
+.f label,.flabel{display:block;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 5px}
+.in{width:100%;min-height:var(--tap);padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:16px;outline:none;-webkit-appearance:none;appearance:none}
+.in:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(29,41,81,.12)}
+select.in{padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231D2951' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+textarea.in{min-height:110px;resize:none;line-height:1.5;overflow:hidden}
+.prefix{display:flex;align-items:stretch}
+.prefix span{display:flex;align-items:center;padding:0 12px;background:var(--soft);border:1.5px solid var(--line);border-right:0;border-radius:10px 0 0 10px;font-weight:800;color:var(--navy);font-size:15px;white-space:nowrap}
+.prefix .in{border-radius:0 10px 10px 0}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+
+/* segmented choice (crew experience) */
+.crew-row{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;margin-bottom:10px}
+.crew-row .who{font-weight:900;color:var(--navy)}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.seg button{flex:1;min-height:var(--tap);border:0;border-left:1.5px solid var(--line);background:#fff;font-weight:800;font-size:14px;color:var(--ink)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--navy);color:#fff}
+.crew-head{display:grid;grid-template-columns:64px 1fr;gap:10px;margin:2px 0 6px}
+.crew-block+.crew-block{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+
+.toggles{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.tog{display:flex;align-items:center;gap:10px;min-height:var(--tap);padding:0 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-weight:800;font-size:14px}
+.tog .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--navy);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.tog.on{border-color:var(--navy);background:#f0f2f8}
+.tog.on .box{background:var(--navy)}
+
+/* items (observations, threat, error, uas) */
+.item{background:var(--card);border-radius:var(--r);box-shadow:0 1px 2px rgba(16,24,40,.06),0 0 0 1px rgba(29,41,81,.08);margin-bottom:14px;overflow:hidden}
+.item-head{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;background:var(--soft);border-bottom:1px solid var(--line)}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:32px;padding:0 10px;border-radius:8px;background:var(--navy);color:#fff;font-weight:900;font-size:15px}
+.badge.t{background:#1D2951}.badge.e{background:#9a3412}.badge.u{background:#7f1d1d}
+.item-sum{font-size:13px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{width:var(--tap);height:var(--tap);border-radius:10px;border:1.5px solid #f3c7c7;background:#fff;color:var(--red);font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.icon-btn:active{background:var(--red);color:#fff}
+.item-body{padding:14px 16px 16px}
+.comp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;padding:12px;border-radius:10px;background:var(--soft)}
+.comp .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.comp .neg .flabel{color:var(--red)}
+.comp .pos .flabel{color:var(--green)}
+@media (max-width:560px){.comp{grid-template-columns:1fr}}
+.code-wrap{display:flex;gap:6px}
+.code-wrap .in{flex:1;min-width:0}
+.find-btn{flex:none;width:var(--tap);min-height:var(--tap);border-radius:10px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);font-weight:900;font-size:13px}
+.hint{min-height:18px;margin-top:4px;font-size:12px;line-height:1.35;color:var(--green)}
+.hint.warn{color:var(--amber)}
+.add-btn{width:100%;min-height:52px;border-radius:var(--r);border:2px dashed #aab2cc;background:transparent;color:var(--navy);font-weight:900;font-size:15px}
+.add-btn:active{background:#e3e7f2}
+.empty{padding:22px;text-align:center;color:var(--muted);font-size:14px}
+
+/* section 3 sub-tabs */
+.subtabs{display:flex;gap:6px;margin:0 0 14px;padding:4px;border-radius:12px;background:#dfe3ee;position:sticky;top:var(--hdr,112px);z-index:20}
+.subtab{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;font-weight:900;font-size:14px;color:var(--navy)}
+.subtab.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+/* reference */
+.ref-search{position:sticky;top:var(--hdr,112px);z-index:20;background:var(--bg);padding:2px 0 10px}
+.ref-group{margin-bottom:14px}
+.ref-group h4{margin:0 0 6px;font-size:13px;font-weight:900;color:var(--navy);text-transform:uppercase;letter-spacing:.03em}
+.ref-row{display:flex;gap:10px;padding:9px 4px;border-bottom:1px solid #eef0f5;font-size:14px}
+.ref-row .id{flex:none;width:44px;font-weight:900;color:var(--navy)}
+.ref-col-h{font-size:12px;font-weight:900;color:#fff;background:var(--navy);border-radius:8px;padding:6px 10px;margin:4px 0 10px;display:inline-block}
+.comp-ref .nm{font-weight:900;color:var(--navy)}
+.comp-ref .ds{font-size:13px;color:var(--muted);margin:2px 0 8px}
+.comp-ref .ob{display:flex;gap:8px;font-size:13.5px;padding:5px 0;border-top:1px solid #f0f1f5}
+.comp-ref .ob b{flex:none;width:46px;color:var(--navy)}
+.foot{margin:22px 4px 0;display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#8a90a6;letter-spacing:.04em;text-transform:uppercase}
+
+/* modal / sheet */
+.dim{position:fixed;inset:0;z-index:100;background:rgba(15,23,42,.45);display:none;align-items:flex-end;justify-content:center}
+.dim.on{display:flex}
+.sheet{width:100%;max-width:720px;max-height:86vh;background:#fff;border-radius:18px 18px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+.sheet-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sheet-h b{font-size:16px;color:var(--navy)}
+.sheet-h .close{margin-left:auto;min-height:40px;padding:0 14px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:800}
+.sheet-b{overflow:auto;padding:12px 16px 20px;-webkit-overflow-scrolling:touch}
+.pick{display:flex;gap:10px;width:100%;text-align:left;padding:12px 6px;border:0;border-bottom:1px solid #eef0f5;background:#fff;font-size:15px}
+.pick:active{background:#eef1f8}
+.pick .id{flex:none;width:44px;font-weight:900;color:var(--navy)}
+.dialog{width:min(92vw,420px);margin:auto;background:#fff;border-radius:16px;padding:20px}
+.dim.center{align-items:center}
+.dialog h3{margin:0 0 6px;color:var(--navy)}
+.dialog p{margin:0 0 14px;color:var(--muted);font-size:14px}
+.dialog .opt{display:block;width:100%;min-height:48px;margin-bottom:8px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:800;text-align:left;padding:0 14px}
+.dialog .opt.danger{background:var(--red);border-color:var(--red);color:#fff;text-align:center}
+.dialog .cancel{display:block;width:100%;min-height:44px;border:0;background:transparent;color:var(--muted);font-weight:800}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:200;background:#111827;color:#fff;padding:12px 16px;border-radius:12px;font-size:14px;max-width:92vw;display:none;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.on{display:flex;gap:12px;align-items:center}
+.toast button{border:0;background:#fff;color:#111827;font-weight:900;border-radius:8px;min-height:34px;padding:0 12px}
+
+.dialog .opt.go{background:var(--navy);border-color:var(--navy);color:#fff;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="top-row">
+    <div class="brand">AIR PREMIA<small>LOA WORKSHEET · F-OPFQ-002</small></div>
+    <div class="save-state" id="saveState">&nbsp;</div>
+    <button class="hbtn primary" id="btnSend" type="button">SEND</button>
+    <button class="hbtn" id="btnJson" type="button">JSON</button>
+    <button class="hbtn" id="btnReset" type="button">RESET</button>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-tab="1" type="button">1 Introduction</button>
+    <button class="tab" data-tab="2" type="button">2 TEM Worksheet<span class="n" id="cntObs">0</span></button>
+    <button class="tab" data-tab="3" type="button">3 T · E · U<span class="n" id="cntTEU">0</span></button>
+    <button class="tab" data-tab="4" type="button">Reference Code</button>
+  </nav>
+</header>
+
+<main id="app">
+  <!-- ───────── SECTION 1 ───────── -->
+  <section class="panel on" id="panel1">
+    <div class="sec-title"><h2>Section 1. Introduction</h2></div>
+
+    <div class="card">
+      <h3>A. Auditor Information</h3>
+      <div class="grid g2">
+        <div class="f"><label for="auditorId">Auditor ID</label>
+          <div class="prefix"><span class="mono">P</span><input class="in mono" id="auditorId" data-bind="s1.auditorId" inputmode="numeric" autocomplete="off" placeholder="####"></div></div>
+        <div class="f"><label for="auditorName">Auditor Name</label>
+          <input class="in" id="auditorName" data-bind="s1.auditorName" autocomplete="off" placeholder="Full Name"></div>
+        <div class="f"><label for="auditNumber">Audit Number</label>
+          <div class="prefix"><span class="mono">LOA -</span><input class="in mono" id="auditNumber" data-bind="s1.auditNumber" inputmode="numeric" autocomplete="off" placeholder="####"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>B. Flight Information</h3>
+      <div class="grid g3">
+        <div class="f"><label for="route">Route</label><select class="in" id="route" data-bind="s1.route"></select></div>
+        <div class="f"><label for="tkoPf">Take Off (PF)</label><select class="in" id="tkoPf" data-bind="s1.takeoff"></select></div>
+        <div class="f"><label for="ldgPf">Landing (PF)</label><select class="in" id="ldgPf" data-bind="s1.landing"></select></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>C. Crew Information</h3>
+      <div class="crew-block">
+        <div class="flabel">Years of experience with Air Premia</div>
+        <div class="crew-row"><div class="who">CAPT</div><div class="seg" data-crew="captWithYP" data-set="ap"></div></div>
+        <div class="crew-row"><div class="who">FO</div><div class="seg" data-crew="foWithYP" data-set="ap"></div></div>
+      </div>
+      <div class="crew-block">
+        <div class="flabel">Years of experience in all airlines</div>
+        <div class="crew-row"><div class="who">CAPT</div><div class="seg" data-crew="captAllAirlines" data-set="all"></div></div>
+        <div class="crew-row"><div class="who">FO</div><div class="seg" data-crew="foAllAirlines" data-set="all"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>D. Notes &amp; Hazard</h3>
+      <div class="toggles">
+        <button type="button" class="tog" data-toggle="s1.hazardIdentified"><span class="box">✓</span>Hazard Identified</button>
+        <button type="button" class="tog" data-toggle="s1.recommendations"><span class="box">✓</span>Recommendations</button>
+      </div>
+      <textarea class="in" id="hazardDetail" data-bind="s1.description" placeholder="Description of hazards or recommendations identified during the observation..."></textarea>
+    </div>
+    <div class="foot"><span>Form No: F-OPFQ-002</span><span>Rev.2 : 2026.05.01</span></div>
+  </section>
+
+  <!-- ───────── SECTION 2 ───────── -->
+  <section class="panel" id="panel2">
+    <div class="sec-title"><h2>Section 2. TEM Worksheet</h2><span class="sub">비행 단계별 관찰 내용</span></div>
+    <div id="obsList"></div>
+    <button type="button" class="add-btn" data-act="add-obs">+ Add Observation</button>
+    <div class="foot"><span>Form No: F-OPFQ-002</span><span>Rev.2 : 2026.05.01</span></div>
+  </section>
+
+  <!-- ───────── SECTION 3 ───────── -->
+  <section class="panel" id="panel3">
+    <div class="sec-title"><h2>Section 3. Threat &amp; Error Management</h2></div>
+    <div class="subtabs" id="subtabs">
+      <button type="button" class="subtab on" data-sub="threats">Threat <span id="cntT">0</span></button>
+      <button type="button" class="subtab" data-sub="errors">Error <span id="cntE">0</span></button>
+      <button type="button" class="subtab" data-sub="uas">UAS <span id="cntU">0</span></button>
+    </div>
+    <div class="sub-panel" data-subpanel="threats"><div id="threatList"></div><button type="button" class="add-btn" data-act="add-threats">+ Add Threat</button></div>
+    <div class="sub-panel" data-subpanel="errors" hidden><div id="errorList"></div><button type="button" class="add-btn" data-act="add-errors">+ Add Error</button></div>
+    <div class="sub-panel" data-subpanel="uas" hidden><div id="uasList"></div><button type="button" class="add-btn" data-act="add-uas">+ Add UAS</button></div>
+    <div class="foot"><span>Form No: F-OPFQ-002</span><span>Rev.2 : 2026.05.01</span></div>
+  </section>
+
+  <!-- ───────── REFERENCE ───────── -->
+  <section class="panel" id="panel4">
+    <div class="sec-title"><h2>Reference Codes</h2></div>
+    <div class="ref-search"><input class="in" id="refQuery" type="search" placeholder="코드 번호나 단어로 찾기 (예: 206, briefing, KNO)" autocomplete="off"></div>
+    <div id="refBody"></div>
+    <div class="foot"><span>Form No: F-OPFQ-002</span><span id="buildTag">Rev.2 : 2026.05.01</span></div>
+  </section>
+</main>
+
+<!-- 코드 선택 시트 -->
+<div class="dim" id="pickDim">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-h"><b id="pickTitle">Code</b><button type="button" class="close" data-act="pick-close">닫기</button></div>
+    <div style="padding:10px 16px 0"><input class="in" id="pickQuery" type="search" placeholder="번호나 단어로 찾기" autocomplete="off"></div>
+    <div class="sheet-b" id="pickList"></div>
+  </div>
+</div>
+
+<!-- RESET -->
+<div class="dim center" id="resetDim">
+  <div class="dialog" id="resetStep1">
+    <h3>Reset</h3><p>초기화할 범위를 고르세요.</p>
+    <button type="button" class="opt" data-reset="1">Section 1 (Introduction)</button>
+    <button type="button" class="opt" data-reset="2">Section 2 (Observations)</button>
+    <button type="button" class="opt" data-reset="3">Section 3 (Threat / Error / UAS)</button>
+    <button type="button" class="opt danger" data-reset="all">ALL SECTIONS</button>
+    <button type="button" class="cancel" data-act="reset-close">Cancel</button>
+  </div>
+  <div class="dialog" id="resetStep2" hidden>
+    <h3 style="color:var(--red)">정말 초기화할까요?</h3><p id="resetMsg">입력한 내용이 삭제되며 되돌릴 수 없습니다.</p>
+    <button type="button" class="opt danger" data-act="reset-do">YES, RESET</button>
+    <button type="button" class="cancel" data-act="reset-back">돌아가기</button>
+  </div>
+</div>
+
+<!-- 확인 창 (기기 기본 confirm 창은 EFB·파일 보기 앱에서 막혀 있어 직접 만든 창을 씀) -->
+<div class="dim center" id="askDim">
+  <div class="dialog" role="alertdialog" aria-modal="true">
+    <h3 id="askTitle">확인</h3><p id="askMsg"></p>
+    <button type="button" class="opt go" data-act="ask-ok" id="askOk">확인</button>
+    <button type="button" class="cancel" data-act="ask-cancel">취소</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span><button type="button" id="toastBtn" hidden></button></div>
+
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+ *  데이터 (기존 워크시트와 동일한 선택지)
+ * ════════════════════════════════════════════════════════════════ */
+// 버전 표시는 맨 위 <meta name="loa-build"> 한 곳에서만 관리합니다. 수정해서 올릴 때 이 값을 바꾸면 EFB에 새 버전이 내려갑니다.
+const BUILD = document.querySelector('meta[name="loa-build"]').content;
+const FORM = { no: 'F-OPFQ-002', rev: '2026.05.01', revLabel: 'Rev.2 : 2026.05.01' };
+
+// 값(value)은 엑셀 매크로 호환을 위해 기존과 동일하게 유지. ICN-DAD/DAD-ICN 은 기존처럼 화면에 SGN 으로 표시.
+const ROUTES = [
+  ['JAPAN / ASIA', [['ICN-NRT','ICN-NRT'],['NRT-ICN','NRT-ICN'],['ICN-HKG','ICN-HKG'],['HKG-ICN','HKG-ICN'],['ICN-BKK','ICN-BKK'],['BKK-ICN','BKK-ICN'],['ICN-DAD','ICN-SGN'],['DAD-ICN','SGN-ICN']]],
+  ['AMERICA (West)', [['ICN-LAX','ICN-LAX'],['LAX-ICN','LAX-ICN'],['ICN-SFO','ICN-SFO'],['SFO-ICN','SFO-ICN'],['ICN-HNL','ICN-HNL'],['HNL-ICN','HNL-ICN']]],
+  ['AMERICA (East)', [['ICN-EWR','ICN-EWR'],['EWR-ICN','EWR-ICN'],['ICN-IAD','ICN-IAD'],['IAD-ICN','IAD-ICN']]]
+];
+const OPT = {
+  pf: ['-','CAPT','FO'],
+  ap: ['NEW','1~2','3~5','6~'],
+  all: ['NEW','1~5','6~10','11~'],
+  s2Phases: ['-','PRE-DEPARTURE / TAXI','TAKE OFF / CLIMB','CRUISE','DES / APP / LAND','TAXI IN','OVERALL FLIGHT'],
+  phases: ['-','PRE-DEPARTURE / TAXI','TAKE OFF / CLIMB','CRUISE','DES / APP / LAND','TAXI IN','ALL'],
+  comp: ['-','KNO','PRO','COM','FPA','FPM','LTW','PSD','SAW','WLM','MNA'],
+  thrOutcomes: ['-','Inconsequential','Error','UAS'],
+  errResponse: ['-','Managed(Detected & Action)','Mismanaged(Detected & Action)','No response(Ignored or undetected)'],
+  errOutcomes: ['-','Inconsequential','Additional Error','UAS'],
+  crew: ['-','Captain','First Officer','Relief Crew','Jump Seat','All Crew','Nobody(or Auditor)'],
+  keywords: ['-','Lack of knowledge','Lack of skill','Negative attitude','Inattention','Complacency','Negligence','Hurry','Fixation','Distraction','Others'],
+  detErr: ['-','Captain','First Officer','Relief Crew','Jump Seat','All Crew','Nobody(or Auditor)','ATC','Cabin Crew','Dispatch','Ground Crew','Aircraft System','Others'],
+  detUas: ['-','Captain','First Officer','Relief Crew','Jump Seat','All Crew','Nobody(or Auditor)','ATC','Cabin Crew','Dispatch','Aircraft System','Others'],
+  uasResponse: ['-','Mitigate','Exacerbate','No response'],
+  uasOutcomes: ['-','Inconsequential','Additional Error']
+};
+
+/* Reference Code 화면용 데이터 (기존 워크시트 Reference Code 페이지에서 그대로 추출) */
+const REF = {"comp": [{"name": "Application of knowledge (KNO)", "en": "Demonstrates knowledge and understanding of relevant information, operating instructions, aircraft systems and the operating environment", "ko": "(비행 관련 정보, 운항 절차, 항공기 시스템 및 운항 환경에 대한 지식과 이해를 보여줌)", "obs": [["OB 01", "Demonstrates practical and applicable knowledge of limitations and systems and their interaction (항공기 시스템의 운용 제한사항 및 계통 간 상호작용에 대한 실질적인 지식을 갖추고, 이를 실제 운항에 효과적으로 적용함)"], ["OB 02", "Demonstrates required knowledge of published operating instructions (발간된 운항 절차에 대한 필요한 지식을 보여준다)"], ["OB 03", "Demonstrates knowledge of the physical environment, the air traffic environment including routings, weather, airports and the operational infrastructure (항로, 기상, 공항 및 운항 인프라를 포함한 물리적·지리적 환경과 항공 교통 환경에 대한 실질적인 지식을 갖춤)"], ["OB 04", "Demonstrates appropriate knowledge of applicable legislation (관련 법률에 대한 적절한 지식을 보여준다)"], ["OB 05", "Knows where to source required information (필요한 정보를 어디서 찾을 수 있는지 알고 있다)"], ["OB 06", "Demonstrates a positive interest in acquiring knowledge (지식 습득에 긍정적인 관심을 보인다)"], ["OB 07", "Is able to apply knowledge effectively (지식을 효과적으로 적용할 수 있다)"]]}, {"name": "Application of procedures (PRO)", "en": "Identifies and applies appropriate procedures in accordance with published operating instructions and applicable regulations.", "ko": "(운항절차 및 관련 규정에 따라 적절한 절차를 식별하고 적용함)", "obs": [["OB 01", "Identifies where to find procedures and regulations (절차와 규정을 어디서 찾을 수 있는지 식별한다)"], ["OB 02", "Applies relevant operating instructions, procedures and techniques in a timely manner (관련 운항 절차, 기술을 적시에 적용한다)"], ["OB 03", "Follows SOPs unless a higher degree of safety dictates an appropriate deviation (더 높은 수준의 안전이 요구되는 경우를 제외하고 SOP를 따른다)"], ["OB 04", "Operates aeroplane systems and associated equipment correctly (항공기 시스템과 관련 장비를 올바르게 조작한다)"], ["OB 05", "Monitors aircraft systems status (항공기 시스템 상태를 모니터링한다)"], ["OB 06", "Complies with applicable regulations (관련 규정을 준수한다)"], ["OB 07", "Applies relevant procedural knowledge (관련된 절차적 지식을 적용한다)"]]}, {"name": "Communication (COM)", "en": "Communicates through appropriate means in the operational environment in both normal and non-normal situations.", "ko": "(정상 및 비정상 상황 모두에서 운항 환경에 적합한 방식으로 의사소통함)", "obs": [["OB 01", "Determines that the recipient is ready and able to receive information (수신자가 정보를 받을 준비가 되었는지 확인한다)"], ["OB 02", "Selects appropriately what, when, how and with whom to communicate (무엇을, 언제, 어떻게, 누구와 의사 소통할지를 적절히 선택한다)"], ["OB 03", "Conveys messages clearly, accurately and concisely (전달하고자 하는 정보를 명확하고 정확하게 표현하며, 간결하게 소통함)"], ["OB 04", "Confirms that the recipient demonstrates understanding of important information (수신자가 중요한 정보를 이해했음을 확인한다)"], ["OB 05", "Listens actively and demonstrates understanding when receiving information (정보를 수신할 때 적극적으로 듣고 이해한다)"], ["OB 06", "Asks relevant and effective questions (관련성 있고 효과적인 질문을 한다)"], ["OB 07", "Uses appropriate escalation in communication to resolve deviations (deviation을 해결하기 위해 상황에 적합한 단계별 의사소통 기법을 사용함)"], ["OB 08", "Uses and interprets non-verbal communication in an appropriate manner (비언어적 의사소통을 사용하고 해석한다)"], ["OB 09", "Adheres to standard radiotelephone phraseology and procedures (표준 무선통신 용어와 절차를 준수한다)"], ["OB 10", "Accurately reads, interprets, constructs and responds to datalink messages (데이터링크 메시지를 정확히 읽고 응답한다)"]]}, {"name": "Aeroplane Flight Path Management, automation (FPA)", "en": "Controls the aeroplane flight path through automation.", "ko": "(자동조종장치를 통해 비행경로를 제어함)", "obs": [["OB 01", "Uses appropriate flight management, guidance systems and automation (장착된 비행 관리 및 유도 시스템과 자동화 기능을 운항 조건에 부합하도록 적절히 운용함)"], ["OB 02", "Monitors and detects deviations from the intended flight path and takes appropriate action (의도한 비행 경로에서 벗어나는 것을 감지하고 조치를 취한다)"], ["OB 03", "Manages the flight path safely to achieve optimum operational performance (최적의 운항 효율성을 확보하기 위해 비행 경로를 안전하게 통제 및 관리함)"], ["OB 04", "Maintains the intended flight path during flight using automation while managing other tasks and distractions (기타 업무 및 방해 요소를 관리하는 동시에, 자동화 시스템을 활용하여 의도된 비행 경로를 안정적으로 유지함)"], ["OB 05", "Selects appropriate level and mode of automation in a timely manner considering phase of flight and workload (비행단계와 workload를 고려한 적절한 수준의 Automation mode를 적시에 선택함)"], ["OB 06", "Effectively monitors automation, including engagement and mode transitions (자동화 상태와 모드 전환 등을 효과적으로 모니터링한다)"]]}, {"name": "Aeroplane Flight Path Management, manual control (FPM)", "en": "Controls the aeroplane flight path through manual control.", "ko": "(수동 조종을 통해 비행경로를 제어함)", "obs": [["OB 01", "Controls the aircraft manually with accuracy and smoothness as appropriate to the situation (상황에 부합하도록 항공기를 정확(Accuracy)하고 부드럽게(Smoothness) 수동으로 조종함)"], ["OB 02", "Monitors and detects deviations from the intended flight path and takes appropriate action (의도된 비행 경로와의 편차를 감시 및 식별하고, 이에 따른 적절한 조치를 취함)"], ["OB 03", "Manually controls the aeroplane using the relationship between aeroplane attitude, speed and thrust, and navigation signals or visual information(항공기 자세(Attitude), 속도 및 추력(Thrust) 간의 상관관계를 활용하고, 항행 신호 및 시각 정보를 참조하여 항공기를 수동으로 제어함)"], ["OB 04", "Manages the flight path safely to achieve optimum operational performance (운항 성능을 달성하도록 비행 경로를 안전하게 관리한다)"], ["OB 05", "Maintains the intended flight path during manual flight while managing other tasks and distractions (수동 비행 중 여타 업무 및 방해 요소를 관리하면서도, 의도된 비행 경로를 안정적으로 유지함)"], ["OB 06", "Uses appropriate flight management and guidance systems, as installed and applicable to the conditions (운항 조건에 부합하도록, 장착된 FMS 및 guidance 시스템을 적절히 운용함)"], ["OB 07", "Effectively monitors flight guidance systems including engagement and automatic mode transitions (Engagement 및 Automatic mode Transitions을 포함하여, 비행 유도 시스템을 효과적으로 감시함)"]]}, {"name": "Leadership and Teamwork (LTW)", "en": "Collaborates to achieve the team goals, contributing to a shared common goal.", "ko": "(공동의 목표에 기여하도록 팀의 목표를 달성하기 위해 협력함)", "obs": [["OB 01", "Encourages team participation and open communication (팀의 참여와 개방적 의사소통을 유도한다)"], ["OB 02", "Demonstrates initiative and provides direction when required (필요시 주도적으로 방향을 제시한다)"], ["OB 03", "Engages others in planning (계획 수립에 타인을 참여시킨다)"], ["OB 04", "Considers inputs from others (타인의 의견을 고려한다)"], ["OB 05", "Gives and receives feedback constructively (건설적인 피드백을 제공하고 수용함)"], ["OB 06", "Addresses and resolves conflicts and disagreements in a constructive manner (갈등 및 이견을 건설적인 방식으로 중재하고 해결함)"], ["OB 07", "Exercises decisive leadership when required (필요시 결단력 있는 리더십을 발휘한다)"], ["OB 08", "Accepts responsibility for decisions and actions (결정과 행동에 책임을 진다)"], ["OB 09", "Carries out instructions when directed (지시를 받았을 때 이를 이행한다)"], ["OB 10", "Applies effective intervention strategies to resolve deviations (식별된 deviation을 해결하기 위해 효율적인 중재전략을 적용함)"], ["OB 11", "Manages cultural and language challenges, as applicable (상황에 따라 발생할 수 있는 문화적 배경 및 언어적 장벽을 효과적으로 관리함)"]]}, {"name": "Problem Solving and Decision Making (PSD)", "en": "Identifies precursors, mitigates problems and makes decisions.", "ko": "(문제의 전조를 식별하고, 이를 완화하며 의사결정을 내림)", "obs": [["OB 01", "Identifies, assesses and manages threats and errors in a timely manner (위협과 오류를 적시에 식별, 평가 및 관리한다)"], ["OB 02", "Seeks accurate and adequate information from appropriate sources (신뢰할 수 있는 출처로부터 정확하고 충분한 정보를 수집 및 활용함)"], ["OB 03", "Identifies and verifies what and why things have gone wrong (발생한 문제의 실체와 원인을 식별 및 검증하되, 상황의 적절성을 고려하여 수행함)"], ["OB 04", "Perseveres in working through problems while prioritizing safety (안전을 최우선으로 고려하며, 직면한 문제를 끝까지 완수하고 해결함)"], ["OB 05", "Identifies and considers appropriate options (상황에 적합한 가용 옵션을 식별하고 제반 사항을 검토함)"], ["OB 06", "Applies appropriate and timely decision-making techniques (적절한 의사결정 모델을 활용하여, 상황에 부합하는 최적의 결정을 적시에 수행함)"], ["OB 07", "Monitors, reviews and adapts decisions as required (수행된 결정을 지속적으로 감시 및 검토하며, 필요시 수정하고 보완함)"], ["OB 08", "Adapts when faced with situations where no guidance or procedure exists (표준 지침이나 절차가 마련되지 않은 이례적 상황에서도 유연하게 대응함)"], ["OB 09", "Demonstrates resilience when encountering an unexpected event (예상치 못한 상황에서도 회복력을 보여준다)"]]}, {"name": "Situation awareness (SAW)", "en": "Perceives, understands, manages and projects information and its effect.", "ko": "(정보를 인식, 이해, 관리하고 그 영향을 예측함)", "obs": [["OB 01", "Monitors and assesses the state of the aeroplane and its systems (항공기 및 시스템 상태를 모니터링하고 평가한다)"], ["OB 02", "Monitors and assesses the aeroplane’s energy state, and its anticipated flight path (항공기의 에너지 상태 및 예상되는 비행 경로를 지속적으로 감시하고 평가함)"], ["OB 03", "Monitors and assesses the general environment as it may affect the operation (운항 전반에 영향을 미칠 수 있는 주변 환경 요소를 지속적으로 감시하고 평가함)"], ["OB 04", "Validates the accuracy of information and checks for gross errors (정보의 정확성을 검증하고 명백한 오류를 확인한다)"], ["OB 05", "Maintains awareness of the people involved in or affected by the operation and their capacity to perform as expected (운항 관계자들과 그들의 수행 능력을 파악한다)"], ["OB 06", "Develops effective contingency plans based upon potential risks associated with threats and errors (잠재적 위험을 기반으로 비상 계획을 수립한다)"], ["OB 07", "Responds to indications of reduced situation awareness (상황 인식이 저하되는 징후에 대응한다)"]]}, {"name": "Workload Management (WLM)", "en": "Maintain available workload capacity by prioritizing and distributing tasks using appropriate resources.", "ko": "(가용 자원을 활용하여 업무의 우선순위를 정하고 배분함으로써, 지속적인 업무 수행 여력을 유지함)", "obs": [["OB 01", "Exercises self-control in all situations (모든 상황에서 자기통제를 유지한다)"], ["OB 02", "Plans, prioritizes and schedules appropriate tasks effectively (업무를 체계적으로 계획하고, 우선순위에 따라 효율적으로 일정을 관리함)"], ["OB 03", "Manages time efficiently when carrying out tasks (업무 수행 시 시간을 효율적으로 관리한다)"], ["OB 04", "Offers and gives assistance (도움을 제공하거나 제공받는다)"], ["OB 05", "Delegates tasks (업무를 위임한다)"], ["OB 06", "Seeks and accepts assistance, when appropriate (필요할 때 도움을 구하고 이를 수용한다)"], ["OB 07", "Monitors, reviews and cross-checks actions conscientiously (수행된 모든 조치를 세심하게 모니터링하며, 상호 교차 확인을 철저히 수행함)"], ["OB 08", "Verifies that tasks are completed to the expected outcome (업무가 기대된 결과에 도달했는지 확인한다)"], ["OB 09", "Manages and recovers from interruptions, distractions, variations and failures effectively while performing tasks (업무 수행 중 발생하는 간섭, 주의 분산 및 비정상 상황을 효과적으로 제어하고 관리함)"]]}, {"name": "Monitoring and Advice (MNA)", "en": "Maintains monitoring and provides advice during Pilot Monitoring duties.", "ko": "(PM임무 수행 시 Monitoring을 유지하고 필요시 Advice를 실시함)", "obs": [["OB 01", "FMA(Flight Mode Annunciator)를 실시간으로 확인하여 시스템의 의도와 비행 경로(Flight Path) 간의 일치 여부를 지속적으로 검증함"], ["OB 02", "각 비행 단계에 부합하는 주요 계기 정보를 면밀히 분석하고, 잠재적 오차(Deviation)를 즉각 식별함"], ["OB 03", "상황 인식(Situation Awareness)의 실시간 공유를 통해 비행 안전 마진을 선제적으로 확보함"], ["OB 04", "Risk Trend를 조기에 식별하여 승무원 간 실시간으로 공유함"], ["OB 05", "PF의 Error 및 절차 누락을 조기에 포착함"], ["OB 06", "PF의 Error를 인지했을 경우, 상황에 부합하는 조언을 적시에 제공함"], ["OB 07", "비행 경로 이탈 가능성을 조기에 포착하여, 선제적인 조언이나 적극적인 개입을 수행함"], ["OB 08", "상대방의 반응이 없을 시, 조종권 인수(Takeover)를 포함한 적극적인 개입을 주저 없이 단행함"]]}], "threat": [{"header": "Environmental Threats", "groups": [{"title": "Weather", "items": [["001", "Adverse WX departure / arrival"], ["002", "Adverse WX enroute"], ["003", "Low visibility takeoff / landing / taxi"], ["004", "Low / High temperature"], ["009", "Other weather threat"]]}, {"title": "ATC", "items": [["010", "Traffic congestion"], ["011", "TCAS RA/TA"], ["012", "Complex navigation / procedures"], ["013", "ATC language difficulty"], ["014", "ATC non-standard phraseology"], ["015", "ATC error"], ["016", "ATC command - challenging clearance, late changes"], ["017", "ATIS interpretation"], ["018", "Units of measurement (i.e., meter, QFE)"], ["019", "Similar call signs"], ["020", "Datalink communication malfunction"], ["029", "Other ATC threat"]]}, {"title": "Airport", "items": [["030", "Contaminated runway / taxiway"], ["031", "Short runway"], ["032", "Lack of / confusing / faded signage or markings"], ["033", "Bird activity"], ["034", "Lack of Aids or Aids U/S"], ["035", "Complex ground navigation"], ["036", "Airport constructions"], ["039", "Other airport threats"]]}, {"title": "TERR", "items": [["040", "High terrain, high elevation, obstacles"], ["041", "High profile / slope descent, complex procedure due to terrain"], ["042", "Lack of references, \"black hole\""], ["049", "Other terrain threats"]]}, {"title": "Other Environmental Threats", "items": [["050", "Other environmental threat not listed in the code list"]]}]}, {"header": "Organizational Threats", "groups": [{"title": "Operational pressure", "items": [["060", "Operational time pressure - delays"], ["061", "Late arriving pilot or aircraft"], ["062", "Aircraft / equipment change"], ["063", "Missed approach"], ["064", "Unfamiliar approach / airport"], ["065", "Crew scheduling event"], ["066", "Other non-normal operation events (i.e., Max weight T/O, rejected T/O)"], ["069", "Other operational pressure threats"]]}, {"title": "Aircraft", "items": [["070", "Aircraft malfunction"], ["071", "Automation event or anomaly"], ["072", "EFB / OPT / iPad event"], ["073", "MEL / CDL"], ["079", "Other aircraft threats"]]}, {"title": "Cabin", "items": [["080", "Cabin event / distraction / interruption"], ["081", "Flight attendant error"], ["089", "Other cabin threats"]]}, {"title": "Maintenance", "items": [["090", "Maintenance event / error"], ["091", "Other maintenance threats"]]}, {"title": "Ground", "items": [["100", "Ground handling event / error"], ["101", "Ground crew communication difficulty"], ["102", "De-icing"], ["109", "Other ground threats"]]}, {"title": "Dispatch", "items": [["110", "Dispatch paperwork event / error"], ["111", "Late arriving documents"], ["119", "Other dispatch threats"]]}, {"title": "Documentation", "items": [["120", "Incomplete / incorrect manuals or charts"], ["121", "Other documentation threats"]]}, {"title": "Other Organizational Threats", "items": [["130", "Other organizational threats not listed in the code list"]]}]}], "error": [{"header": "Aircraft Handling Errors", "groups": [{"title": "Manual Handling - Flight Control", "items": [["100", "Vertical / lateral deviations"], ["101", "Speed deviations"], ["102", "Incorrect flaps / slats / speed brakes / landing gear operations"], ["103", "Incorrect power / reverser settings"], ["104", "Excessive pitch / bank controls"], ["105", "Incorrect crosswind landing technique"], ["106", "Incorrect brakes / autobrakes / parking brakes operations"], ["119", "Other manual handling - Flight control errors"]]}, {"title": "Automation Handling", "items": [["120", "MCP - Incorrect altitude / heading / speed / vertical speed settings"], ["121", "MCP - Incorrect mode selects"], ["122", "MCP - Incorrect mode left engaged"], ["123", "MCP - Failure to execute a mode when needed"], ["124", "MCP - Incorrect AP / FD settings"], ["125", "FMS - Incorrect / omitted FMS entries"], ["126", "FMS - Incorrect mode executions"], ["127", "FMS - Failure to execute an FMS mode when needed"], ["128", "Incorrect auto throttle uses"], ["139", "Other automation handling errors"]]}, {"title": "Systems / Radio / Instruments", "items": [["140", "Failure to turn on the landing lights"], ["141", "Incorrect packs operations"], ["142", "Incorrect fuel switch settings"], ["143", "Incorrect anti-ice operations"], ["144", "Incorrect altimeter settings"], ["145", "Incorrect radio frequency settings"], ["146", "Failure to turn on TCAS"], ["147", "Incorrect display settings"], ["148", "Incorrect setup for engine start"], ["149", "Failure to turn on seatbelt sign"], ["150", "Incorrect WX radar operations"], ["151", "Incorrect transponder code entry"], ["169", "Other system / radio / instruments errors"]]}, {"title": "Ground Navigation", "items": [["170", "Attempting or actually turning down the wrong runway"], ["171", "Attempting or actually turning down the wrong taxiway"], ["172", "Attempting or actually lining up off position (i.e., off C/L)"], ["173", "Missed taxiway / runway / gate"], ["174", "Taxi too fast"], ["175", "Failure to hold short"], ["189", "Other ground navigation errors"]]}]}, {"header": "Procedural Errors", "groups": [{"title": "SOPs", "items": [["200", "Failure to cross-verify MCP / FMS / CDU / FMA mode changes"], ["201", "Failure to cross-verify altimeter settings"], ["202", "Failure to cross-verify ATC clearances"], ["203", "Failure to execute a go-around after passing procedural bottom lines of an unstable approach"], ["204", "Sterile cockpit violations"], ["205", "Performing correct task procedures out of sequence"], ["206", "PF makes own MCP / FMS changes"], ["207", "PF makes own Flight control setting"], ["208", "Both pilots head down"], ["209", "PM/PF duty allocation not clear"], ["210", "Omitted handover procedures - Flight control / communication"], ["211", "Setting altimeters before the transition altitude"], ["212", "Using equipment placarded INOP"], ["213", "A/C operation with unresolved MEL"], ["214", "Failure to cross-verify paperwork or documentation"], ["229", "Other SOPs errors"]]}, {"title": "Checklists", "items": [["230", "Missed Checklist item"], ["231", "Omitted / forgot Checklist"], ["232", "Wrong Checklist performed"], ["233", "Checklist performed late or wrong time"], ["234", "Incorrect challenge and response"], ["235", "Response without verification"], ["236", "Completed Checklist not called \"complete\""], ["237", "Checklist performed by memory"], ["238", "Self-initiated / performed Checklist"], ["249", "Other Checklist errors"]]}, {"title": "Briefings", "items": [["250", "Incomplete or omitted T/O briefing"], ["251", "Incomplete or omitted approach briefing"], ["252", "Incomplete or omitted Flight attendant briefing"], ["253", "Incomplete or omitted engine-out briefing"], ["259", "Other briefing errors"]]}, {"title": "Callouts", "items": [["260", "Omitted callouts"], ["261", "Incorrect callouts"], ["269", "Other callout errors"]]}, {"title": "Documentation", "items": [["270", "Incorrect weight and balance read"], ["271", "Incorrect fuel information recorded"], ["272", "Misinterpreted items on the documents (Flight plan / WX charts / NOTAM / dispatch release / FMLB)"], ["273", "Missed items on the documents"], ["274", "Incorrect runway information recorded"], ["275", "Incorrect performance calculations"], ["276", "Incorrect ATIS / ATC clearance recorded"], ["277", "Incorrect application of MEL"], ["278", "Incorrect application of manuals / charts"], ["279", "Omitted / incorrect FMLB entries"], ["289", "Other documentation errors"]]}]}, {"header": "Comm. & Decision-making Errors", "groups": [{"title": "Pilot to External", "items": [["300", "Wrong readbacks or callbacks to ATC"], ["301", "Missed ATC calls"], ["302", "Omitted call signs to ATC"], ["303", "Failure to give readbacks or callbacks to ATC"], ["304", "Use of non-standard ATC phraseology"], ["305", "Misinterpretation of ATC instructions"], ["306", "Altitude deviation without ATC clearance"], ["307", "Course / heading deviation without ATC clearance"], ["308", "Speed deviation without ATC clearance"], ["309", "CPDLC incorrect entry"], ["310", "Omitted / incorrect communication to Flight attendant"], ["311", "Omitted / incorrect communication to ground crew"], ["312", "Omitted / incorrect communication to company (dispatcher / MX)"], ["319", "Other pilot to external errors"]]}, {"title": "Pilot to Pilot", "items": [["320", "Crew miscommunication - Wrong information communicated"], ["321", "Crew miscommunication - Lead to misinterpretation between pilots"], ["322", "Non-essential conversation at inappropriate times"], ["323", "Missed / lack of communication"], ["329", "Other pilot to pilot errors"]]}, {"title": "Decision-making", "items": [["330", "Accepting ATC instruction that unnecessary increased Risk"], ["331", "Making a request to ATC that unnecessary increased Risk"], ["332", "Navigation through known bad WX that unnecessary increased Risk"], ["333", "Operating at the edge of the performance envelope(No buffer for error)"], ["334", "Attempting or actually takeoff without cabin ready"], ["339", "Other decision-making error"]]}, {"title": "* FMLB : Flight Management Log Book * MX : Maintenance", "items": []}]}], "uas": [{"header": "Handling & Landing States", "groups": [{"title": "Aircraft Handling - All Phases", "items": [["001", "Inappropriate aircraft control - attitude"], ["002", "Inappropriate aircraft control - thrust"], ["003", "Vertical deviation"], ["004", "Lateral deviation"], ["005", "Inappropriate WX penetration"], ["006", "Unauthorized airspace penetration"], ["007", "Operation outside A/C limitation"]]}, {"title": "Approach / Landing", "items": [["010", "Unstable approach - go around"], ["011", "Unstable approach - continued landing"], ["012", "Firm landing"], ["013", "Landing off C/L"], ["014", "Landing outside TDZ"], ["015", "Landing without clearance"]]}]}, {"header": "Ground, Configuration & Other", "groups": [{"title": "Ground", "items": [["020", "Proceeding towards wrong runway"], ["021", "Runway incursion"], ["022", "Takeoff without clearance"], ["023", "Proceeding towards wrong taxiway / ramp"], ["024", "Taxiway / ramp incursion"], ["025", "Wrong gate"]]}, {"title": "Configuration", "items": [["030", "Incorrect A/C configuration - Flight controls"], ["031", "Incorrect A/C configuration - systems"], ["032", "Incorrect A/C configuration - Automation"], ["033", "Incorrect A/C configuration - Engine"], ["034", "Incorrect A/C configuration - weight and balance"]]}, {"title": "Other Undesired Aircraft States", "items": [["099", "other undesired aircraft state not listed in the code list"]]}]}]};
+
+/* 코드 매핑 테이블: Excel 매크로 원본 문자열 (기존 워크시트와 동일 — 수정 시 매크로와 함께) */
+const _CODE_MAPS_STATIC = {
+    threat: {
+        "001": "001.Adverse WX departure / arrival",
+        "002": "002.Adverse WX enroute ",
+        "003": "003.Low visibility takeoff / landing / taxi ",
+        "004": "004.Low / High temperature ",
+        "009": "009.Other weather threat ",
+        "010": "010.Traffic congestion ",
+        "011": "011.TCAS RA/TA ",
+        "012": "012.Complex navigation / procedures ",
+        "013": "013.ATC language difficulty ",
+        "014": "014.ATC non-standard phraseology ",
+        "015": "015.ATC error ",
+        "016": "016.ATC command - challenging clearance, late changes ",
+        "017": "017.ATIS interpretation ",
+        "018": "018.Units of measurement (i.e., meter, QFE) ",
+        "019": "019.Similar call signs ",
+        "020": "020.Datalink communication malfunction",
+        "029": "029.Other ATC threat",
+        "030": "030.Contaminated runway / taxiway ",
+        "031": "031.Short runway ",
+        "032": "032.Lack of / confusing / faded signage or markings ",
+        "033": "033.Bird activity ",
+        "034": "034.Lack of Aids or Aids U/S ",
+        "035": "035.Complex ground navigation ",
+        "036": "036.Airport constructions ",
+        "039": "039.Other airport threats ",
+        "040": "040.High terrain, high elevation, obstacles ",
+        "041": "041.High profile / slope descent, complex procedure due to terrain ",
+        "042": "042.Lack of references, “black hole” ",
+        "049": "049.Other terrain threats ",
+        "050": "050.Other environmental threat not listed in the code list ",
+        "060": "060.Operational time pressure – delays ",
+        "061": "061.Late arriving pilot or aircraft ",
+        "062": "062.Aircraft / equipment change ",
+        "063": "063.Missed approach ",
+        "064": "064.Unfamiliar approach / airport ",
+        "065": "065.Crew scheduling event ",
+        "066": "066.Other non-normal operation events (i.e., Max weight T/O, rejected T/O) ",
+        "069": "069.Other operational pressure threats Aircraft ",
+        "070": "070.Aircraft malfunction ",
+        "071": "071.Automation event or anomaly ",
+        "072": "072.EFB / OPT / iPad event ",
+        "073": "073.MEL / CDL",
+        "079": "079.Other aircraft threats ",
+        "080": "080.Cabin event / distraction / interruption ",
+        "081": "081.Flight attendant error ",
+        "089": "089.Other cabin threats ",
+        "090": "090.Maintenance event / error ",
+        "091": "091.Other maintenance threats ",
+        "100": "100.Ground handling event / error ",
+        "101": "101.Ground crew communication difficulty ",
+        "102": "102.De-icing ",
+        "109": "109.Other ground threats ",
+        "110": "110.Dispatch paperwork event / error ",
+        "111": "111.Late arriving documents ",
+        "119": "119.Other dispatch threats ",
+        "120": "120.Incomplete / incorrect manuals or charts ",
+        "121": "121.Other documentation threats ",
+        "130": "130.Other organizational threats not listed in the code list"
+    },
+    error: {
+        "100": "100.Vertical / lateral deviations",
+        "101": "101.Speed deviations",
+        "102": "102.Incorrect flaps / slats / speed brakes /  landing gear operations",
+        "103": "103.Incorrect power / reverser settings",
+        "104": "104.Excessive pitch / bank controls",
+        "105": "105.Incorrect crosswind landing technique",
+        "106": "106.Incorrect brakes / autobrakes / parking brakes operations",
+        "119": "119.Other manual handling. Flight control errors",
+        "120": "120. MCP. Incorrect altitude / heading / speed /  vertical speed settings",
+        "121": "121. MCP. Incorrect mode selects",
+        "122": "122. MCP. Incorrect mode left engaged",
+        "123": "123. MCP. Failure to execute a mode when needed",
+        "124": "124. MCP. Incorrect AP / FD settings",
+        "125": "125. FMS. Incorrect / omitted FMS entries",
+        "126": "126. FMS. Incorrect mode executions",
+        "127": "127. FMS. Failure to execute an FMS mode when needed",
+        "128": "128. Incorrect auto throttle uses",
+        "139": "139. Other automation handling errors",
+        "140": "140.Failure to turn on the landing lights",
+        "141": "141.Incorrect packs operations",
+        "142": "142.Incorrect fuel switch settings",
+        "143": "143.Incorrect anti-ice operations",
+        "144": "144.Incorrect altimeter settings",
+        "145": "145.Incorrect radio frequency settings",
+        "146": "146.Failure to turn on TCAS",
+        "147": "147.Incorrect display settings",
+        "148": "148.Incorrect setup for engine start",
+        "149": "149.Failure to turn on seatbelt sign",
+        "150": "150.Incorrect WX radar operations",
+        "151": "151.Incorrect transponder code entry",
+        "169": "169.Other system / radio / instruments errors",
+        "170": "170.Attempting or actually  turning down the wrong runway",
+        "171": "171.Attempting or actually  turning down the wrong taxiway",
+        "172": "172.Attempting or actually  lining up off position (i.e., off C/L)",
+        "173": "173.Missed taxiway / runway / gate",
+        "174": "174.Taxi too fast",
+        "175": "175.Failure to hold short",
+        "189": "189.Other ground navigation errors",
+        "200": "200.Failure to cross-verify MCP / FMS / CDU / FMA mode changes",
+        "201": "201.Failure to cross-verify altimeter settings",
+        "202": "202.Failure to cross-verify ATC clearances",
+        "203": "203.Failure to execute a go-around after passing procedural bottom lines of  an unstable approach",
+        "204": "204.Sterile cockpit violations",
+        "205": "205.Performing correct task procedures out of sequence",
+        "206": "206.PF makes own MCP / FMS changes",
+        "207": "207.PF makes own Flight control setting",
+        "208": "208.Both pilots head down",
+        "209": "209.PM/PF duty allocation not clear",
+        "210": "210.Omitted handover procedures. Flight control / communication",
+        "211": "211.Setting altimeters before the transition altitude",
+        "212": "212.Using equipment placarded INOP",
+        "213": "213.A/C operation with unresolved MEL",
+        "214": "214.Failure to cross-verify paperwork or documentation",
+        "229": "229.Other SOPs errors",
+        "230": "230.Missed Checklist item",
+        "231": "231.Omitted / forgot Checklist",
+        "232": "232.Wrong Checklist performed",
+        "233": "233.Checklist performed late or wrong time",
+        "234": "234.Incorrect challenge and response",
+        "235": "235.Response without verification",
+        "236": "236.Completed Checklist not called “complete”",
+        "237": "237.Checklist performed by memory",
+        "238": "238.Self-initiated / performed Checklist",
+        "249": "249.Other Checklist errors",
+        "250": "250.Incomplete or omitted T/O briefing",
+        "251": "251.Incomplete or omitted approach briefing",
+        "252": "252.Incomplete or omitted Flight attendant briefing",
+        "253": "253.Incomplete or omitted engine-out briefing",
+        "259": "259.Other briefing errors",
+        "260": "260.Omitted callouts",
+        "261": "261.Incorrect callouts",
+        "269": "269.Other callout errors",
+        "270": "270.Incorrect weight and balance read",
+        "271": "271.Incorrect fuel information recorded",
+        "272": "272.Misinterpreted items on the documents (Flight plan / WX charts / NOTAM / dispatch release / FMLB)",
+        "273": "273.Missed items on the documents",
+        "274": "274.Incorrect runway information recorded",
+        "275": "275.Incorrect performance calculations",
+        "276": "276.Incorrect ATIS / ATC clearance recorded",
+        "277": "277.Incorrect application of MEL",
+        "278": "278.Incorrect application of manuals / charts",
+        "279": "279.Omitted / incorrect FMLB entries",
+        "289": "289.Other documentation errors",
+        "300": "300.Wrong readbacks or callbacks to ATC",
+        "301": "301.Missed ATC calls",
+        "302": "302.Omitted call signs to ATC",
+        "303": "303.Failure to give readbacks or callbacks to ATC",
+        "304": "304.Use of non-standard ATC phraseology",
+        "305": "305.Misinterpretation of ATC instructions",
+        "306": "306.Altitude deviation without ATC clearance",
+        "307": "307.Course / heading deviation without ATC clearance",
+        "308": "308.Speed deviation without ATC clearance",
+        "309": "309.CPDLC incorrect entry",
+        "310": "310.Omitted / incorrect communication to Flight attendant",
+        "311": "311.Omitted / incorrect communication to ground crew",
+        "312": "312.Omitted / incorrect communication to company (dispatcher / MX)",
+        "319": "319.Other pilot to external errors",
+        "320": "320.Crew miscommunication. Wrong information communicated",
+        "321": "321.Crew miscommunication. lead to misinterpretation between pilots",
+        "322": "322.Non-essential conversation  at inappropriate times",
+        "323": "323.Missed / lack of communication",
+        "329": "329.Other pilot to pilot errors",
+        "330": "330.Accepting ATC instruction that unnecessary increased Risk",
+        "331": "331.Making a request to ATC that unnecessary increased Risk",
+        "332": "332.Navigation through known bad WX that unnecessary increased Risk",
+        "333": "333.Operating at the edge of the performance envelope (no buffer for error)",
+        "334": "334.Attempting or actually takeoff without cabin ready",
+        "339": "339.Other decision-making error"
+    },
+    uas: {
+        "001": "001. Inappropriate aircraft control – attitude",
+        "002": "002. Inappropriate aircraft control – thrust",
+        "003": "003. Vertical deviation",
+        "004": "004. Lateral deviation",
+        "005": "005. Inappropriate WX penetration",
+        "006": "006. Unauthorized airspace penetration",
+        "007": "007. Operation outside A/C limitation",
+        "010": "010. Unstable approach – go around",
+        "011": "011. Unstable approach – continued landing",
+        "012": "012. Firm landing",
+        "013": "013. Landing off C/L",
+        "014": "014. Landing outside TDZ",
+        "015": "015. Landing without clearance",
+        "020": "020. Proceeding towards wrong runway",
+        "021": "021. Runway incursion",
+        "022": "022. Takeoff without clearance",
+        "023": "023. Proceeding towards wrong taxiway / ramp",
+        "024": "024. Taxiway / ramp incursion",
+        "025": "025. Wrong gate",
+        "030": "030. Incorrect A/C configuration – Flight controls",
+        "031": "031. Incorrect A/C configuration – systems",
+        "032": "032. Incorrect A/C configuration – Automation",
+        "033": "033. Incorrect A/C configuration – Engine",
+        "034": "034. Incorrect A/C configuration – weight and balance",
+        "099": "099. other undesired aircraft state not listed in the code list"
+    }
+};
+
+
+/* ════════════════════════════════════════════════════════════════
+ *  상태 & 자동저장
+ * ════════════════════════════════════════════════════════════════ */
+const STORE_KEY = 'loa_ws_portrait_v1';
+const OLD_KEY = 'loa_final_backup_v2';
+const N_OBS_DEFAULT = 6;
+
+const blankS1 = () => ({ auditorId:'', auditorName:'', auditNumber:'', route:'-', takeoff:'-', landing:'-',
+  captWithYP:'-', captAllAirlines:'-', foWithYP:'-', foAllAirlines:'-',
+  hazardIdentified:false, recommendations:false, description:'' });
+const blankObs = () => ({ phase:'-', observation:'' });
+const blankThreat = () => ({ phase:'-', code:'', outcomes:'-', linkedTo:'', compNegative:['-','-'], compPositive:['-','-'], description:'' });
+const blankError = () => ({ phase:'-', code:'', response:'-', outcomes:'-', committedBy:'-', keywords:'-', detectedBy:'-', compNegative:['-','-'], compPositive:['-','-'], description:'' });
+const blankUas = () => ({ errorNum:'-', code:'', response:'-', outcomes:'-', committedBy:'-', detectedBy:'-', compNegative:['-','-'], compPositive:['-','-'], description:'' });
+const blankState = () => ({ s1: blankS1(), s2: Array.from({length:N_OBS_DEFAULT}, blankObs), threats:[blankThreat()], errors:[blankError()], uas:[blankUas()], savedAt:null });
+
+let S = blankState();
+let saveTimer = null;
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) { S = normalize(JSON.parse(raw)); return 'restored'; }
+    const old = localStorage.getItem(OLD_KEY);
+    if (old) { S = migrateOld(JSON.parse(old)); persist(); return 'migrated'; }
+  } catch (e) { console.warn('복구 실패', e); }
+  return 'new';
+}
+function normalize(d) {
+  const b = blankState();
+  const out = { s1: Object.assign(b.s1, d.s1 || {}), s2: Array.isArray(d.s2) ? d.s2.map(o => Object.assign(blankObs(), o)) : b.s2,
+    threats: (d.threats || []).map(o => Object.assign(blankThreat(), o)),
+    errors: (d.errors || []).map(o => Object.assign(blankError(), o)),
+    uas: (d.uas || []).map(o => Object.assign(blankUas(), o)), savedAt: d.savedAt || null };
+  return out;
+}
+// 기존 워크시트(가로형)의 자동저장 데이터가 있으면 한 번 가져옴
+function migrateOld(o) {
+  const st = blankState(); const i = o.inputs || {};
+  const map = { auditorId:'auditorId', auditorName:'auditorName', auditNumber:'auditNumber', route:'route', tkoPf:'takeoff', ldgPf:'landing', hazardDetail:'description' };
+  Object.keys(map).forEach(k => { if (typeof i[k] === 'string') st.s1[map[k]] = i[k]; });
+  if (typeof i.hazardFlag === 'boolean') st.s1.hazardIdentified = i.hazardFlag;
+  if (typeof i.recoFlag === 'boolean') st.s1.recommendations = i.recoFlag;
+  const s3 = o.section3 || {};
+  const strip = (x, keys) => { const r = {}; keys.forEach(k => { if (x[k] !== undefined) r[k] = x[k]; }); return r; };
+  if (Array.isArray(s3.threats) && s3.threats.length) st.threats = s3.threats.map(t => Object.assign(blankThreat(), strip(t, Object.keys(blankThreat()))));
+  if (Array.isArray(s3.errors) && s3.errors.length) st.errors = s3.errors.map(t => Object.assign(blankError(), strip(t, Object.keys(blankError()))));
+  if (Array.isArray(s3.uas) && s3.uas.length) st.uas = s3.uas.map(t => Object.assign(blankUas(), strip(t, Object.keys(blankUas()))));
+  return st;
+}
+function persist() {
+  try {
+    S.savedAt = new Date().toISOString();
+    localStorage.setItem(STORE_KEY, JSON.stringify(S));
+    showSaved();
+  } catch (e) {
+    console.warn('저장 실패', e);
+    $('#saveState').innerHTML = '<span style="color:#fca5a5">저장 실패</span>';
+  }
+}
+function scheduleSave() { clearTimeout(saveTimer); $('#saveState').textContent = '저장 중…'; saveTimer = setTimeout(persist, 300); }
+function flushSave() { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; persist(); } }
+function showSaved() {
+  if (!S.savedAt) { $('#saveState').innerHTML = '&nbsp;'; return; }
+  const d = new Date(S.savedAt);
+  $('#saveState').innerHTML = '<b>●</b> 자동저장 ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushSave(); });
+window.addEventListener('pagehide', flushSave);
+
+/* ════════════════════════════════════════════════════════════════
+ *  유틸
+ * ════════════════════════════════════════════════════════════════ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const opts = (list, val) => list.map(v => `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(v)}</option>`).join('');
+function getPath(path) { return path.split('.').reduce((o, k) => (o == null ? o : o[k]), S); }
+function setPath(path, val) {
+  const ks = path.split('.'); let o = S;
+  for (let i = 0; i < ks.length - 1; i++) o = o[ks[i]];
+  o[ks[ks.length - 1]] = val;
+}
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.max(el.scrollHeight + 2, 110) + 'px'; }
+function toast(msg, btnLabel, onBtn, ms) {
+  const t = $('#toast'); $('#toastMsg').textContent = msg; const b = $('#toastBtn');
+  if (btnLabel) { b.hidden = false; b.textContent = btnLabel; b.onclick = () => { t.classList.remove('on'); onBtn && onBtn(); }; } else b.hidden = true;
+  t.classList.add('on'); clearTimeout(t._h); if (ms !== 0) t._h = setTimeout(() => t.classList.remove('on'), ms || 3500);
+}
+
+/* 코드 → 매크로 풀네임 (기존 _expandCode 와 동일 규칙) */
+function expandCode(raw, type) {
+  if (raw === undefined || raw === null) return raw;
+  const v = String(raw).trim();
+  if (!v || v === '-') return v;
+  const m = v.match(/^(\d+)/); if (!m) return raw;
+  const map = _CODE_MAPS_STATIC[type] || {};
+  const padded = m[1].padStart(3, '0');
+  if (map[padded]) return map[padded];
+  if (map[m[1]]) return map[m[1]];
+  return raw;
+}
+function codeHint(raw, type) {
+  const v = String(raw || '').trim();
+  if (!v) return { cls:'', txt:'' };
+  const m = v.match(/^(\d+)/);
+  if (!m) return { cls:'warn', txt:'코드 번호로 시작하지 않아 입력한 그대로 저장됩니다' };
+  const full = expandCode(v, type);
+  if (full === raw || full === v) {
+    const map = _CODE_MAPS_STATIC[type] || {};
+    if (!map[m[1].padStart(3,'0')] && !map[m[1]]) return { cls:'warn', txt:`코드표에 없는 번호입니다 (${m[1]})` };
+  }
+  return { cls:'', txt:'✓ ' + String(full).trim() };
+}
+
+/* ════════════════════════════════════════════════════════════════
+ *  화면 그리기
+ * ════════════════════════════════════════════════════════════════ */
+const ID_PREFIX = { threats:'T', errors:'E', uas:'U' };
+const CODE_TYPE = { threats:'threat', errors:'error', uas:'uas' };
+
+function renderS1() {
+  $('#route').innerHTML = '<option value="-">-</option>' + ROUTES.map(([g, list]) =>
+    `<optgroup label="${esc(g)}">` + list.map(([v, l]) => `<option value="${v}">${l}</option>`).join('') + '</optgroup>').join('');
+  $('#tkoPf').innerHTML = opts(OPT.pf); $('#ldgPf').innerHTML = opts(OPT.pf);
+  $$('[data-bind^="s1."]').forEach(el => { el.value = getPath(el.dataset.bind) ?? ''; if (el.tagName === 'TEXTAREA') requestAnimationFrame(() => autoGrow(el)); });
+  $$('.seg[data-crew]').forEach(seg => {
+    const key = seg.dataset.crew, list = OPT[seg.dataset.set];
+    seg.innerHTML = list.map(v => `<button type="button" data-crew-val="${esc(v)}" class="${S.s1[key] === v ? 'on' : ''}">${esc(v)}</button>`).join('');
+  });
+  $$('[data-toggle]').forEach(b => b.classList.toggle('on', !!getPath(b.dataset.toggle)));
+}
+
+function renderObs() {
+  $('#obsList').innerHTML = S.s2.length ? S.s2.map((o, i) => `
+    <div class="item">
+      <div class="item-head"><span class="badge">${i + 1}</span>
+        <select class="in" style="flex:1;min-width:0" data-bind="s2.${i}.phase" aria-label="Phase">${opts(OPT.s2Phases, o.phase)}</select>
+        <button type="button" class="icon-btn" data-act="del" data-list="s2" data-i="${i}" aria-label="삭제">✕</button></div>
+      <div class="item-body"><textarea class="in" data-bind="s2.${i}.observation" placeholder="Enter observations...">${esc(o.observation)}</textarea></div>
+    </div>`).join('') : '<div class="card empty">관찰 기록이 없습니다.</div>';
+  $$('#obsList textarea').forEach(autoGrow);
+  updateCounts();
+}
+
+function compBlock(list, i, it) {
+  return `<div class="comp">
+    <div class="neg"><div class="flabel">(−) Competency</div><div class="pair">
+      <select class="in" data-bind="${list}.${i}.compNegative.0">${opts(OPT.comp, it.compNegative[0])}</select>
+      <select class="in" data-bind="${list}.${i}.compNegative.1">${opts(OPT.comp, it.compNegative[1])}</select></div></div>
+    <div class="pos"><div class="flabel">(+) Competency</div><div class="pair">
+      <select class="in" data-bind="${list}.${i}.compPositive.0">${opts(OPT.comp, it.compPositive[0])}</select>
+      <select class="in" data-bind="${list}.${i}.compPositive.1">${opts(OPT.comp, it.compPositive[1])}</select></div></div>
+  </div>`;
+}
+function codeField(list, i, it) {
+  const h = codeHint(it.code, CODE_TYPE[list]);
+  return `<div class="f"><label>Code</label><div class="code-wrap">
+    <input class="in mono" data-bind="${list}.${i}.code" value="${esc(it.code)}" placeholder="예: 206" autocomplete="off" autocapitalize="off">
+    <button type="button" class="find-btn" data-act="pick" data-list="${list}" data-i="${i}" aria-label="코드표에서 찾기">찾기</button></div>
+    <div class="hint ${h.cls}" data-hint="${list}.${i}">${esc(h.txt)}</div></div>`;
+}
+function summary(list, it) {
+  const parts = [];
+  if (it.phase && it.phase !== '-') parts.push(it.phase);
+  if (String(it.code || '').trim()) parts.push(String(expandCode(it.code, CODE_TYPE[list])).trim());
+  return parts.join(' · ');
+}
+function itemShell(list, i, it, body) {
+  const id = ID_PREFIX[list] + (i + 1);
+  const cls = { threats:'t', errors:'e', uas:'u' }[list];
+  return `<div class="item"><div class="item-head"><span class="badge ${cls}">${id}</span>
+    <span class="item-sum" data-sum="${list}.${i}">${esc(summary(list, it))}</span>
+    <button type="button" class="icon-btn" data-act="del" data-list="${list}" data-i="${i}" aria-label="${id} 삭제">✕</button></div>
+    <div class="item-body">${body}</div></div>`;
+}
+function renderThreats() {
+  $('#threatList').innerHTML = S.threats.length ? S.threats.map((t, i) => itemShell('threats', i, t, `
+    <div class="grid g2">
+      <div class="f"><label>Phase</label><select class="in" data-bind="threats.${i}.phase">${opts(OPT.phases, t.phase)}</select></div>
+      ${codeField('threats', i, t)}
+      <div class="f"><label>Outcomes</label><select class="in" data-bind="threats.${i}.outcomes">${opts(OPT.thrOutcomes, t.outcomes)}</select></div>
+      <div class="f"><label>Linked to</label><input class="in" data-bind="threats.${i}.linkedTo" value="${esc(t.linkedTo)}" placeholder="예: E1, E2" autocomplete="off" autocapitalize="characters"></div>
+    </div>
+    ${compBlock('threats', i, t)}
+    <div class="f" style="margin-top:12px"><label>Description</label><textarea class="in" data-bind="threats.${i}.description" placeholder="Describe the threat detail...">${esc(t.description)}</textarea></div>`)).join('')
+    : '<div class="card empty">Threat이 없습니다.</div>';
+  $$('#threatList textarea').forEach(autoGrow);
+  updateCounts();
+}
+function renderErrors() {
+  $('#errorList').innerHTML = S.errors.length ? S.errors.map((e, i) => itemShell('errors', i, e, `
+    <div class="grid g2">
+      <div class="f"><label>Phase</label><select class="in" data-bind="errors.${i}.phase">${opts(OPT.phases, e.phase)}</select></div>
+      ${codeField('errors', i, e)}
+      <div class="f"><label>Response</label><select class="in" data-bind="errors.${i}.response">${opts(OPT.errResponse, e.response)}</select></div>
+      <div class="f"><label>Outcomes</label><select class="in" data-bind="errors.${i}.outcomes">${opts(OPT.errOutcomes, e.outcomes)}</select></div>
+    </div>
+    <div class="grid g3" style="margin-top:12px">
+      <div class="f"><label>Committed by</label><select class="in" data-bind="errors.${i}.committedBy">${opts(OPT.crew, e.committedBy)}</select></div>
+      <div class="f"><label>C.R Keywords</label><select class="in" data-bind="errors.${i}.keywords">${opts(OPT.keywords, e.keywords)}</select></div>
+      <div class="f"><label>Detected by</label><select class="in" data-bind="errors.${i}.detectedBy">${opts(OPT.detErr, e.detectedBy)}</select></div>
+    </div>
+    ${compBlock('errors', i, e)}
+    <div class="f" style="margin-top:12px"><label>Description</label><textarea class="in" data-bind="errors.${i}.description" placeholder="Describe the error detail...">${esc(e.description)}</textarea></div>`)).join('')
+    : '<div class="card empty">Error가 없습니다.</div>';
+  $$('#errorList textarea').forEach(autoGrow);
+  updateCounts();
+}
+function errorNumOptions(val) {
+  const list = ['-'].concat(S.errors.map((_, i) => 'E' + (i + 1)));
+  if (val && !list.includes(val)) list.push(val); // 삭제된 Error를 가리키던 값도 보존
+  return opts(list, val);
+}
+function renderUas() {
+  $('#uasList').innerHTML = S.uas.length ? S.uas.map((u, i) => itemShell('uas', i, u, `
+    <div class="grid g2">
+      <div class="f"><label>Error #</label><select class="in" data-bind="uas.${i}.errorNum">${errorNumOptions(u.errorNum)}</select></div>
+      ${codeField('uas', i, u)}
+      <div class="f"><label>Response</label><select class="in" data-bind="uas.${i}.response">${opts(OPT.uasResponse, u.response)}</select></div>
+      <div class="f"><label>Outcomes</label><select class="in" data-bind="uas.${i}.outcomes">${opts(OPT.uasOutcomes, u.outcomes)}</select></div>
+      <div class="f"><label>Committed by</label><select class="in" data-bind="uas.${i}.committedBy">${opts(OPT.crew, u.committedBy)}</select></div>
+      <div class="f"><label>Detected by</label><select class="in" data-bind="uas.${i}.detectedBy">${opts(OPT.detUas, u.detectedBy)}</select></div>
+    </div>
+    ${compBlock('uas', i, u)}
+    <div class="f" style="margin-top:12px"><label>Description</label><textarea class="in" data-bind="uas.${i}.description" placeholder="Describe the UAS detail...">${esc(u.description)}</textarea></div>`)).join('')
+    : '<div class="card empty">UAS가 없습니다.</div>';
+  $$('#uasList textarea').forEach(autoGrow);
+  updateCounts();
+}
+function updateCounts() {
+  const filledObs = S.s2.filter(o => o.observation.trim() || o.phase !== '-').length;
+  $('#cntObs').textContent = filledObs;
+  $('#cntTEU').textContent = `${S.threats.length}·${S.errors.length}·${S.uas.length}`;
+  $('#cntT').textContent = S.threats.length; $('#cntE').textContent = S.errors.length; $('#cntU').textContent = S.uas.length;
+}
+function renderAll() { renderS1(); renderObs(); renderThreats(); renderErrors(); renderUas(); showSaved(); }
+
+/* ── Reference Code 화면 ── */
+function renderRef(q) {
+  q = (q || '').trim().toLowerCase();
+  const hit = s => !q || s.toLowerCase().includes(q);
+  let html = '';
+  const comp = REF.comp.filter(c => hit(c.name + ' ' + c.en + ' ' + c.ko + ' ' + c.obs.map(o => o.join(' ')).join(' ')));
+  if (comp.length) html += `<div class="card comp-ref"><h3>A. Competencies</h3>` + comp.map(c => `
+      <div style="margin-bottom:14px"><div class="nm">${esc(c.name)}</div><div class="ds">${esc(c.en)}<br>${esc(c.ko)}</div>
+      ${c.obs.map(o => `<div class="ob"><b>${esc(o[0])}</b><span>${esc(o[1])}</span></div>`).join('')}</div>`).join('') + '</div>';
+  [['threat','B. Threat Code'],['error','C. Error Code'],['uas','D. Undesired Aircraft State (UAS) Code']].forEach(([k, title]) => {
+    let body = '';
+    REF[k].forEach(col => {
+      let colHtml = '';
+      col.groups.forEach(g => {
+        const items = g.items.filter(it => hit(it[0] + ' ' + it[1] + ' ' + g.title));
+        if (items.length) colHtml += `<div class="ref-group"><h4>${esc(g.title)}</h4>${items.map(it => `<div class="ref-row"><span class="id">${esc(it[0])}</span><span>${esc(it[1])}</span></div>`).join('')}</div>`;
+      });
+      if (colHtml) body += `<div class="ref-col-h">${esc(col.header)}</div>` + colHtml;
+    });
+    if (k === 'error' && body && !q) body += '<div style="font-size:12px;color:var(--muted);margin-top:6px">* FMLB : Flight Management Log Book &nbsp; * MX : Maintenance</div>';
+    if (body) html += `<div class="card"><h3>${title}</h3>${body}</div>`;
+  });
+  $('#refBody').innerHTML = html || '<div class="card empty">찾는 코드가 없습니다.</div>';
+}
+
+/* ── 코드 선택 시트 ── */
+let pickTarget = null;
+function openPicker(list, i) {
+  pickTarget = { list, i };
+  const type = CODE_TYPE[list];
+  $('#pickTitle').textContent = { threat:'Threat Code', error:'Error Code', uas:'UAS Code' }[type];
+  $('#pickQuery').value = '';
+  renderPicker('');
+  $('#pickDim').classList.add('on');
+}
+function renderPicker(q) {
+  q = q.trim().toLowerCase();
+  const type = CODE_TYPE[pickTarget.list];
+  let html = '';
+  REF[type].forEach(col => col.groups.forEach(g => {
+    const items = g.items.filter(it => !q || (it[0] + ' ' + it[1] + ' ' + g.title).toLowerCase().includes(q));
+    if (items.length) html += `<div class="ref-group" style="margin-top:10px"><h4>${esc(g.title)}</h4>` +
+      items.map(it => `<button type="button" class="pick" data-pick="${esc(it[0])}"><span class="id">${esc(it[0])}</span><span>${esc(it[1])}</span></button>`).join('') + '</div>';
+  }));
+  $('#pickList').innerHTML = html || '<div class="empty">찾는 코드가 없습니다.</div>';
+}
+function closePicker() { $('#pickDim').classList.remove('on'); pickTarget = null; }
+
+/* ════════════════════════════════════════════════════════════════
+ *  이벤트
+ * ════════════════════════════════════════════════════════════════ */
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.id === 'refQuery') { renderRef(el.value); return; }
+  if (el.id === 'pickQuery') { renderPicker(el.value); return; }
+  const path = el.dataset && el.dataset.bind; if (!path) return;
+  setPath(path, el.value);
+  if (el.tagName === 'TEXTAREA') autoGrow(el);
+  onFieldChange(path);
+  scheduleSave();
+});
+document.addEventListener('change', e => {
+  const el = e.target; const path = el.dataset && el.dataset.bind; if (!path) return;
+  setPath(path, el.value); onFieldChange(path); scheduleSave();
+});
+function onFieldChange(path) {
+  const m = path.match(/^(threats|errors|uas)\.(\d+)\.(\w+)/);
+  if (m) {
+    const [, list, i, field] = m; const it = S[list][+i];
+    if (field === 'code') { const h = codeHint(it.code, CODE_TYPE[list]); const el = $(`[data-hint="${list}.${i}"]`); if (el) { el.className = 'hint ' + h.cls; el.textContent = h.txt; } }
+    if (field === 'code' || field === 'phase') { const s = $(`[data-sum="${list}.${i}"]`); if (s) s.textContent = summary(list, it); }
+  }
+  if (path.startsWith('s2.')) updateCounts();
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, .dim'); if (!t) return;
+  if (t.classList.contains('dim') && e.target === t) { if (t.id === 'pickDim') closePicker(); if (t.id === 'resetDim') closeReset(); if (t.id === 'askDim') closeAsk(); return; }
+
+  if (t.dataset.tab) return showTab(t.dataset.tab);
+  if (t.dataset.sub) return showSub(t.dataset.sub);
+  if (t.dataset.crewVal !== undefined) {
+    const seg = t.closest('.seg'); const key = seg.dataset.crew; const v = t.dataset.crewVal;
+    S.s1[key] = S.s1[key] === v ? '-' : v;          // 다시 누르면 선택 해제
+    $$('button', seg).forEach(b => b.classList.toggle('on', b.dataset.crewVal === S.s1[key]));
+    return scheduleSave();
+  }
+  if (t.dataset.toggle) { const v = !getPath(t.dataset.toggle); setPath(t.dataset.toggle, v); t.classList.toggle('on', v); return scheduleSave(); }
+  if (t.dataset.pick !== undefined && pickTarget) {
+    const { list, i } = pickTarget; const id = t.dataset.pick;
+    const full = expandCode(id, CODE_TYPE[list]);
+    S[list][i].code = String(full).trim();
+    const inp = $(`[data-bind="${list}.${i}.code"]`); if (inp) inp.value = S[list][i].code;
+    onFieldChange(`${list}.${i}.code`); scheduleSave(); closePicker(); return;
+  }
+  if (t.dataset.reset) return askReset(t.dataset.reset);
+
+  switch (t.dataset.act || t.id) {
+    case 'add-obs': S.s2.push(blankObs()); renderObs(); scheduleSave(); focusLast('#obsList textarea'); break;
+    case 'add-threats': S.threats.push(blankThreat()); renderThreats(); scheduleSave(); scrollLast('#threatList'); break;
+    case 'add-errors': S.errors.push(blankError()); renderErrors(); renderUas(); scheduleSave(); scrollLast('#errorList'); break;
+    case 'add-uas': S.uas.push(blankUas()); renderUas(); scheduleSave(); scrollLast('#uasList'); break;
+    case 'del': delItem(t.dataset.list, +t.dataset.i); break;
+    case 'pick': openPicker(t.dataset.list, +t.dataset.i); break;
+    case 'pick-close': closePicker(); break;
+    case 'btnReset': openReset(); break;
+    case 'reset-close': closeReset(); break;
+    case 'reset-back': $('#resetStep2').hidden = true; $('#resetStep1').hidden = false; break;
+    case 'reset-do': doReset(); break;
+    case 'ask-ok': { const cb = askCb; closeAsk(); if (cb) cb(); break; }
+    case 'ask-cancel': closeAsk(); break;
+    case 'btnJson': exportJSON(); break;
+    case 'btnSend': sendAll(); break;
+  }
+});
+
+/* ── 확인 창 (confirm 대체) — 확인 버튼 터치 안에서 바로 실행되므로 공유 창도 열 수 있음 ── */
+let askCb = null;
+function askConfirm(o, cb) {
+  $('#askTitle').textContent = o.title || '확인';
+  $('#askMsg').textContent = o.msg || '';
+  const ok = $('#askOk'); ok.textContent = o.ok || '확인';
+  ok.classList.toggle('danger', !!o.danger); ok.classList.toggle('go', !o.danger);
+  askCb = cb; $('#askDim').classList.add('on');
+}
+function closeAsk() { $('#askDim').classList.remove('on'); askCb = null; }
+
+function delItem(list, i) {
+  const label = list === 's2' ? `Observation ${i + 1}` : ID_PREFIX[list] + (i + 1);
+  askConfirm({ title: `${label} 삭제`, msg: '이 항목에 입력한 내용이 지워집니다.', ok: '삭제', danger: true }, () => {
+    if (list === 's2') { S.s2.splice(i, 1); renderObs(); }
+    else {
+      S[list].splice(i, 1);
+      if (list === 'threats') renderThreats();
+      if (list === 'errors') { renderErrors(); renderUas(); }
+      if (list === 'uas') renderUas();
+    }
+    scheduleSave();
+    toast(`${label} 을(를) 삭제했습니다.`);
+  });
+}
+function scrollLast(sel) { const items = $$(sel + ' > .item'); const last = items[items.length - 1]; if (last) last.scrollIntoView({ behavior:'smooth', block:'start' }); }
+function focusLast(sel) { const all = $$(sel); const l = all[all.length - 1]; if (l) { l.scrollIntoView({ behavior:'smooth', block:'center' }); } }
+
+function showTab(n) {
+  $$('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === n));
+  $$('.panel').forEach(p => p.classList.toggle('on', p.id === 'panel' + n));
+  try { sessionStorage.setItem('loa_tab', n); } catch (e) {}
+  window.scrollTo(0, 0);
+  requestAnimationFrame(() => $$('#panel' + n + ' textarea').forEach(autoGrow));
+}
+function showSub(k) {
+  $$('.subtab').forEach(b => b.classList.toggle('on', b.dataset.sub === k));
+  $$('.sub-panel').forEach(p => p.hidden = p.dataset.subpanel !== k);
+  try { sessionStorage.setItem('loa_sub', k); } catch (e) {}
+  requestAnimationFrame(() => $$('[data-subpanel="' + k + '"] textarea').forEach(autoGrow));
+}
+
+/* ── RESET ── */
+let pendingReset = null;
+function openReset() { $('#resetStep1').hidden = false; $('#resetStep2').hidden = true; $('#resetDim').classList.add('on'); }
+function closeReset() { $('#resetDim').classList.remove('on'); pendingReset = null; }
+function askReset(which) {
+  pendingReset = which;
+  $('#resetMsg').textContent = (which === 'all' ? '모든 섹션' : 'Section ' + which) + '의 입력 내용이 삭제되며 되돌릴 수 없습니다.';
+  $('#resetStep1').hidden = true; $('#resetStep2').hidden = false;
+}
+function doReset() {
+  const w = pendingReset; const b = blankState();
+  if (w === '1' || w === 'all') S.s1 = b.s1;
+  if (w === '2' || w === 'all') S.s2 = b.s2;
+  if (w === '3' || w === 'all') { S.threats = b.threats; S.errors = b.errors; S.uas = b.uas; }
+  closeReset(); renderAll(); persist(); toast('초기화했습니다.');
+}
+
+/* ════════════════════════════════════════════════════════════════
+ *  JSON 내보내기 — 기존 워크시트(collectLOAData)와 동일한 구조
+ * ════════════════════════════════════════════════════════════════ */
+function collectLOAData() {
+  const s = S.s1;
+  const data = {
+    meta: { formNo: FORM.no, rev: FORM.rev, exportedAt: new Date().toISOString() },
+    section1: {
+      auditorId: s.auditorId, auditorName: s.auditorName, auditNumber: s.auditNumber,
+      route: s.route, takeoff: s.takeoff, landing: s.landing,
+      crew: { captWithYP: s.captWithYP, captAllAirlines: s.captAllAirlines, foWithYP: s.foWithYP, foAllAirlines: s.foAllAirlines },
+      notesAndHazard: { hazardIdentified: !!s.hazardIdentified, recommendations: !!s.recommendations, description: s.description }
+    },
+    section2: S.s2.map(o => ({ phase: o.phase, observation: o.observation })),
+    section3: {
+      threats: S.threats.map((t, i) => ({ id: 'T' + (i + 1), phase: t.phase, code: expandCode(t.code, 'threat'), outcomes: t.outcomes, linkedTo: t.linkedTo,
+        compNegative: [t.compNegative[0], t.compNegative[1]], compPositive: [t.compPositive[0], t.compPositive[1]], description: t.description })),
+      errors: S.errors.map((e, i) => ({ id: 'E' + (i + 1), phase: e.phase, code: expandCode(e.code, 'error'), response: e.response, outcomes: e.outcomes,
+        committedBy: e.committedBy, keywords: e.keywords, detectedBy: e.detectedBy,
+        compNegative: [e.compNegative[0], e.compNegative[1]], compPositive: [e.compPositive[0], e.compPositive[1]], description: e.description })),
+      uas: S.uas.map((u, i) => ({ id: 'U' + (i + 1), errorNum: u.errorNum, code: expandCode(u.code, 'uas'), response: u.response, outcomes: u.outcomes,
+        committedBy: u.committedBy, detectedBy: u.detectedBy,
+        compNegative: [u.compNegative[0], u.compNegative[1]], compPositive: [u.compPositive[0], u.compPositive[1]], description: u.description }))
+    }
+  };
+  return data;
+}
+/* ════════════════════════════════════════════════════════════════
+ *  JSON / SEND — 파일 만들기 & 공유
+ *  · 인쇄(window.print)와 기본 confirm 창은 EFB·파일 보기 앱·홈 화면 앱에서 막히는 경우가 많아 쓰지 않음
+ *  · PDF는 이 페이지가 직접 그려서 만듦 (외부 라이브러리 없음, 오프라인 동작)
+ *  · SEND = PDF + JSON 두 파일을 공유 시트 한 번으로 보냄 (메일·AirDrop·파일에 저장)
+ * ════════════════════════════════════════════════════════════════ */
+const auditNo = () => (S.s1.auditNumber || '').trim() || 'new';
+function makeJsonFile() {
+  return new File([JSON.stringify(collectLOAData(), null, 2)], `LOA-${auditNo()}.json`, { type: 'application/json' });
+}
+function makePdfFile() {
+  return new File([buildPdfBlob()], `LOA-${auditNo()}.pdf`, { type: 'application/pdf' });
+}
+
+function canShareFiles(list) { try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files: list })); } catch (e) { return false; } }
+function downloadFiles(files, doneMsg) {
+  files.forEach((f, k) => setTimeout(() => {
+    const url = URL.createObjectURL(f);
+    const a = document.createElement('a'); a.href = url; a.download = f.name; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 2000);
+  }, k * 700));
+  toast(doneMsg || `${files.map(f => f.name).join(', ')} 을(를) 저장했습니다.`, null, null, 5000);
+}
+// 공유 시트는 '버튼을 누른 그 순간'에만 열림. 그래서 이 함수는 항상 버튼 터치 안에서 동기적으로 불림.
+function shareFiles(files, doneMsg) {
+  const names = files.map(f => f.name).join(', ');
+  if (canShareFiles(files)) {
+    navigator.share({ files, title: files[0].name.replace(/\.\w+$/, '') })
+      .then(() => toast(`${names} 보내기 완료`))
+      .catch(err => {
+        if (err && err.name === 'AbortError') return;               // 사용자가 공유 창을 닫음
+        toast('공유 창을 열지 못했습니다.', '다시 열기', () => shareFiles(files, doneMsg), 12000);
+      });
+    return;
+  }
+  if (files.length > 1 && canShareFiles([files[0]])) return shareOneByOne(files, 0);   // 여러 파일 동시 공유를 못 하는 기기
+  downloadFiles(files, doneMsg);
+}
+function shareOneByOne(files, k) {
+  navigator.share({ files: [files[k]], title: files[k].name }).then(() => {
+    if (k + 1 < files.length) toast(`${files[k].name} 완료`, `${files[k + 1].name} 보내기`, () => shareOneByOne(files, k + 1), 0);
+    else toast('보내기 완료');
+  }).catch(err => {
+    if (err && err.name === 'AbortError') return;
+    toast('공유 창을 열지 못했습니다.', '다시 열기', () => shareOneByOne(files, k), 12000);
+  });
+}
+
+function exportJSON() {
+  flushSave();
+  shareFiles([makeJsonFile()], `LOA-${auditNo()}.json 을(를) 저장했습니다. PC의 LOA Data Management 매크로에서 가져올 수 있습니다.`);
+}
+function sendAll() {
+  flushSave();
+  if (!(S.s1.auditNumber || '').trim()) {
+    askConfirm({ title: 'Audit Number가 비어 있습니다', msg: '파일 이름이 LOA-new 로 만들어집니다. 그래도 보낼까요?', ok: '보내기' }, doSend);
+    return;
+  }
+  doSend();
+}
+function doSend() {
+  let files;
+  try { files = [makePdfFile(), makeJsonFile()]; }
+  catch (err) { console.error(err); toast('PDF를 만들지 못했습니다. JSON만 보내려면 JSON 버튼을 누르세요.', null, null, 6000); return; }
+  shareFiles(files);
+}
+
+/* ── PDF 그리기 : A4 세로, 페이지마다 캔버스에 그린 뒤 JPEG로 PDF에 넣음 ── */
+const PG = { W: 210, H: 297, M: 12, S: 6 };            // mm, 1mm = 6px (약 152dpi)
+PG.BOT = PG.H - PG.M - 7;                               // 본문이 내려갈 수 있는 맨 아래 (꼬리말 위)
+const P_NAVY = '#1D2951', P_TH = '#e8ebf3', P_LAB = '#f3f5f9';
+const P_FONT = '-apple-system,"SF Pro Text","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",Arial,sans-serif';
+const PT = 0.3528, PADX = 1.6, PADY = 1.4, LH = 1.42;
+const pxm = v => v * PG.S;
+const dv = v => (v === undefined || v === null || String(v).trim() === '' || v === '-') ? '-' : String(v);
+
+function renderPages(total) {
+  const out = []; let cv = null, g = null, y = 0, n = 0, label = '', onNew = null, top = 0;
+  const s1 = S.s1, num = (s1.auditNumber || '').trim();
+  const routeTxt = s1.route && s1.route !== '-' ? routeLabel(s1.route) : '';
+  const X = PG.M, W = PG.W - PG.M * 2;
+
+  const font = (pt, b, it) => { g.font = `${it ? 'italic ' : ''}${b ? '800' : '400'} ${pxm(pt * PT)}px ${P_FONT}`; };
+  function text(t, x, yy, pt, o = {}) { font(pt, o.b, o.i); g.fillStyle = o.c || '#000'; g.textAlign = o.al || 'left'; g.fillText(t, pxm(x), pxm(yy)); }
+  function rect(x, yy, w, h, fill) {
+    if (fill) { g.fillStyle = fill; g.fillRect(pxm(x), pxm(yy), pxm(w), pxm(h)); }
+    g.strokeStyle = P_NAVY; g.lineWidth = pxm(0.25); g.strokeRect(pxm(x), pxm(yy), pxm(w), pxm(h));
+  }
+  function hline(x1, yy, x2, lw) { g.strokeStyle = P_NAVY; g.lineWidth = pxm(lw || 0.25); g.beginPath(); g.moveTo(pxm(x1), pxm(yy)); g.lineTo(pxm(x2), pxm(yy)); g.stroke(); }
+  function wrap(t, pt, b, maxW) {
+    font(pt, b); const lim = pxm(maxW), fits = s => g.measureText(s).width <= lim, res = [];
+    String(t == null ? '' : t).replace(/\r/g, '').split('\n').forEach(para => {
+      let line = '';
+      para.split(/(\s+)/).forEach(tok => {
+        if (!tok) return;
+        if (fits(line + tok)) { line += tok; return; }
+        if (line.trim()) res.push(line.replace(/\s+$/, ''));
+        line = tok.replace(/^\s+/, '');
+        if (!fits(line)) {                                   // 한 단어가 칸보다 길면 글자 단위로 자름
+          let cur = '';
+          for (const ch of line) { if (fits(cur + ch)) cur += ch; else { if (cur) res.push(cur); cur = ch; } }
+          line = cur;
+        }
+      });
+      res.push(line.replace(/\s+$/, ''));
+    });
+    return res;
+  }
+
+  function finishPage() {
+    if (!cv) return;
+    const fy = PG.H - PG.M - 4;
+    hline(X, fy, X + W, 0.25);
+    text('FORM NO: ' + FORM.no, X, fy + 1.2, 7, { b: 1, c: P_NAVY });
+    text(total ? `${n} / ${total}` : String(n), X + W / 2, fy + 1.2, 7, { b: 1, c: P_NAVY, al: 'center' });
+    text(FORM.revLabel.toUpperCase(), X + W, fy + 1.2, 7, { b: 1, c: P_NAVY, al: 'right' });
+    if (total) out.push(cv.toDataURL('image/jpeg', 0.88));
+    cv.width = cv.height = 0; cv = null; g = null;          // iPad 메모리 아끼기: 페이지마다 바로 비움
+  }
+  function newPage(lbl, first) {
+    finishPage(); n++; if (lbl) label = lbl;
+    cv = document.createElement('canvas'); cv.width = pxm(PG.W); cv.height = pxm(PG.H);
+    g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.textBaseline = 'top';
+    y = PG.M;
+    if (first) { text('Line Operation Audit (LOA) Worksheet', PG.W / 2, y, 17, { b: 1, c: P_NAVY, al: 'center' }); y += 9.5; }
+    text('LOA-' + (num || '____'), X, y, 8.5, { b: 1, c: P_NAVY });
+    text(routeTxt, PG.W / 2, y, 8.5, { b: 1, c: P_NAVY, al: 'center' });
+    text(label, X + W, y, 8.5, { b: 1, c: P_NAVY, al: 'right' });
+    y += 4.4; hline(X, y, X + W, 0.42); y += 4;
+    if (onNew) onNew();
+    top = y;
+  }
+  function secBar(t) { g.fillStyle = P_NAVY; g.fillRect(pxm(X), pxm(y), pxm(W), pxm(6.6)); text(t.toUpperCase(), PG.W / 2, y + 1.6, 10, { b: 1, c: '#fff', al: 'center' }); y += 6.6 + 3; }
+  function subHead(t) { if (y + 14 > PG.BOT) newPage(); y += 1.5; text(t.toUpperCase(), X, y, 10.5, { b: 1, c: P_NAVY }); y += 6; }
+  function none(t) { text(t, X, y + 2, 9.5, { i: 1, c: '#666' }); y += 9; }
+
+  // 칸(cell): { t, w, b, al, bg, pt, c, th(머리칸), lab(항목칸) }
+  function prep(cells, totalW) {
+    let fixed = 0, flex = 0; cells.forEach(c => c.w ? fixed += c.w : flex++);
+    const fw = flex ? (totalW - fixed) / flex : 0;
+    return cells.map(c0 => {
+      const c = Object.assign({}, c0);
+      if (c.th) { c.bg = c.bg || P_TH; c.pt = c.pt || 7.5; c.b = 1; c.c = P_NAVY; c.al = c.al || 'center'; c.t = String(c.t || '').toUpperCase(); }
+      if (c.lab) { c.bg = P_LAB; c.pt = 8; c.b = 1; c.c = P_NAVY; c.t = String(c.t || '').toUpperCase(); }
+      c.w = c.w || fw; c.pt = c.pt || 8.5; c.lh = c.pt * PT * LH;
+      c.lines = wrap(c.t, c.pt, c.b, c.w - PADX * 2); c.h = c.lines.length * c.lh + PADY * 2;
+      return c;
+    });
+  }
+  const rowH = (cs, min) => Math.max(min || 0, ...cs.map(c => c.h));
+  function drawRow(cs, x, yy, h) {
+    let cx = x;
+    cs.forEach(c => {
+      rect(cx, yy, c.w, h, c.bg);
+      const ty = yy + (h - c.lines.length * c.lh) / 2;
+      const tx = c.al === 'center' ? cx + c.w / 2 : c.al === 'right' ? cx + c.w - PADX : cx + PADX;
+      c.lines.forEach((ln, k) => text(ln, tx, ty + k * c.lh + (c.lh - c.pt * PT) / 2, c.pt, { b: c.b, c: c.c, al: c.al }));
+      cx += c.w;
+    });
+  }
+  function table(rows) { rows.forEach(r => { const cs = prep(r, W), h = rowH(cs); if (y + h > PG.BOT) newPage(); drawRow(cs, X, y, h); y += h; }); }
+
+  // 묶음(block): 왼쪽 번호칸(id) + 위쪽 고정 줄(rows) + 아래 긴 글(tail). 긴 글은 페이지를 넘겨 이어짐.
+  function block(b) {
+    const idW = b.id ? b.id.w : 0, x = X + idW, w = W - idW;
+    const rows = (b.rows || []).map(r => { const cs = prep(r, w); return { cs, h: rowH(cs) }; });
+    const headH = rows.reduce((a, r) => a + r.h, 0);
+    const tpt = b.tail.pt || 9.5, tlh = tpt * PT * LH, tmin = b.tail.min || 0;
+    const lines = String(b.tail.t || '').trim() ? wrap(b.tail.t, tpt, false, w - PADX * 2) : [];
+    const whole = headH + Math.max(tmin, lines.length * tlh + PADY * 2);
+    const fitsFresh = whole <= PG.BOT - top;
+    if (y + whole > PG.BOT && y > top + 0.5 && (fitsFresh || y + headH + Math.min(whole - headH, 3 * tlh + PADY * 2) > PG.BOT)) newPage();
+    let segTop = y;
+    const drawId = bot => {
+      if (!b.id || bot - segTop < 0.1) return;
+      rect(X, segTop, idW, bot - segTop, b.id.bg);
+      const pt = b.id.pt || 11, lh = pt * PT * LH, ls = wrap(b.id.t, pt, true, idW - PADX * 2);
+      const ty = segTop + (bot - segTop - ls.length * lh) / 2;
+      ls.forEach((ln, k) => text(ln, X + idW / 2, ty + k * lh + (lh - pt * PT) / 2, pt, { b: 1, c: P_NAVY, al: 'center' }));
+    };
+    const drawTail = (a, z, yy, h) => {
+      rect(x, yy, w, h, null);
+      lines.slice(a, z).forEach((ln, k) => text(ln, x + PADX, yy + PADY + k * tlh + (tlh - tpt * PT) / 2, tpt));
+    };
+    rows.forEach(r => { drawRow(r.cs, x, y, r.h); y += r.h; });
+    let i = 0, first = true;
+    for (let guard = 0; guard < 200; guard++) {
+      const avail = PG.BOT - y, left = lines.length - i;
+      const need = Math.max(first ? tmin : 0, left * tlh + PADY * 2);
+      if (need <= avail) { drawTail(i, lines.length, y, need); y += need; break; }
+      const fit = Math.floor((avail - PADY * 2) / tlh);
+      if (fit >= left) { drawTail(i, lines.length, y, avail); y = PG.BOT; break; }
+      if (fit >= 1) { drawTail(i, i + fit, y, avail); i += fit; y = PG.BOT; }
+      drawId(y); newPage(); segTop = y; first = false;
+    }
+    drawId(y); y += (b.gap === undefined ? 3.5 : b.gap);
+  }
+
+  /* PAGE — Section 1 */
+  newPage('Section 1', true);
+  secBar('Section 1. Introduction');
+  subHead('A. Auditor Information');
+  table([
+    [{ t: 'Auditor ID', w: 30, lab: 1 }, { t: 'P ' + dv(s1.auditorId) }, { t: 'Auditor Name', w: 30, lab: 1 }, { t: dv(s1.auditorName) }],
+    [{ t: 'Audit Number', w: 30, lab: 1 }, { t: 'LOA - ' + dv(s1.auditNumber) }, { t: '', w: 30, lab: 1 }, { t: '' }]
+  ]);
+  subHead('B. Flight Information');
+  table([[{ t: 'Route', w: 22, lab: 1 }, { t: dv(routeTxt), al: 'center' }, { t: 'Take Off', w: 22, lab: 1 }, { t: dv(s1.takeoff), al: 'center' }, { t: 'Landing', w: 22, lab: 1 }, { t: dv(s1.landing), al: 'center' }]]);
+  subHead('C. Crew Information');
+  {
+    const cw = (W - 14) / 8;
+    const r1 = prep([{ t: '', w: 14, th: 1 }, { t: 'Years of experience with Air Premia', w: cw * 4, th: 1 }, { t: 'Years of experience in all airlines', w: cw * 4, th: 1 }], W);
+    const r2 = prep([{ t: '', w: 14, th: 1 }].concat(OPT.ap.concat(OPT.all).map(v => ({ t: v, w: cw, th: 1 }))), W);
+    const h1 = rowH(r1), h2 = rowH(r2), y0 = y;
+    drawRow(r1, X, y, h1); y += h1; drawRow(r2, X, y, h2); y += h2;
+    rect(X, y0, 14, h1 + h2, P_TH); text('CREW', X + 7, y0 + (h1 + h2) / 2 - 1.3, 7.5, { b: 1, c: P_NAVY, al: 'center' });
+    const crewRow = (who, k1, k2) => [{ t: who, w: 14, b: 1, al: 'center', c: P_NAVY }]
+      .concat(OPT.ap.map(v => ({ t: s1[k1] === v ? '●' : '', w: cw, al: 'center', pt: 10 })))
+      .concat(OPT.all.map(v => ({ t: s1[k2] === v ? '●' : '', w: cw, al: 'center', pt: 10 })));
+    table([crewRow('CAPT', 'captWithYP', 'captAllAirlines'), crewRow('FO', 'foWithYP', 'foAllAirlines')]);
+  }
+  subHead('D. Notes & Hazard');
+  block({ rows: [[{ t: (s1.hazardIdentified ? '■' : '□') + ' Hazard Identified        ' + (s1.recommendations ? '■' : '□') + ' Recommendations', b: 1, pt: 9, c: P_NAVY }]],
+    tail: { t: s1.description, min: 30 } });
+
+  /* PAGE — Section 2 */
+  onNew = null; newPage('Section 2');
+  secBar('Section 2. TEM Worksheet');
+  const obsHead = () => { const cs = prep([{ t: 'Phase', w: 38, th: 1 }, { t: 'Observations', th: 1 }], W), h = rowH(cs); drawRow(cs, X, y, h); y += h; };
+  obsHead(); onNew = obsHead; top = y;
+  const obs = S.s2.filter(o => o.phase !== '-' || o.observation.trim());
+  if (!obs.length) none('No observations');
+  obs.forEach(o => block({ id: { t: o.phase === '-' ? '-' : o.phase, w: 38, pt: 8.5 }, tail: { t: o.observation, min: 9 }, gap: 0 }));
+
+  /* PAGE — Section 3 */
+  const comp = a => { const x = a.filter(v => v && v !== '-'); return x.length ? x.join(' / ') : '-'; };
+  const code = (raw, type) => { const v = String(raw || '').trim(); return v ? String(expandCode(v, type)).trim() : '-'; };
+  const sec3 = (lbl, head, list, empty, make) => {
+    onNew = null; newPage(lbl);
+    secBar('Section 3. Threat & Error Management'); subHead(head);
+    onNew = () => { text((head + ' (cont.)').toUpperCase(), X, y, 9, { b: 1, c: P_NAVY }); y += 5.5; };
+    top = y;
+    if (!list.length) none(empty);
+    list.forEach(make);
+  };
+  sec3('Section 3-A', 'A. Threat Management', S.threats, 'No threats recorded', (t, i) => block({
+    id: { t: 'T' + (i + 1), w: 16, bg: P_LAB },
+    rows: [
+      [{ t: 'Phase', w: 27, th: 1 }, { t: 'Code', th: 1 }, { t: 'Outcomes', w: 27, th: 1 }, { t: 'Linked to', w: 18, th: 1 }, { t: '(−) Comp.', w: 21, th: 1 }, { t: '(+) Comp.', w: 21, th: 1 }],
+      [{ t: dv(t.phase), w: 27, al: 'center' }, { t: code(t.code, 'threat'), b: 1 }, { t: dv(t.outcomes), w: 27, al: 'center' }, { t: dv(t.linkedTo), w: 18, al: 'center' }, { t: comp(t.compNegative), w: 21, al: 'center' }, { t: comp(t.compPositive), w: 21, al: 'center' }]
+    ], tail: { t: t.description, min: 14 } }));
+  sec3('Section 3-B', 'B. Error Management', S.errors, 'No errors recorded', (e, i) => block({
+    id: { t: 'E' + (i + 1), w: 16, bg: P_LAB },
+    rows: [
+      [{ t: 'Phase', w: 25, th: 1 }, { t: 'Code', th: 1 }, { t: 'Response', w: 36, th: 1 }, { t: 'Outcomes', w: 27, th: 1 }, { t: '(−) Comp.', w: 19, th: 1 }, { t: '(+) Comp.', w: 19, th: 1 }],
+      [{ t: dv(e.phase), w: 25, al: 'center' }, { t: code(e.code, 'error'), b: 1 }, { t: dv(e.response), w: 36, al: 'center' }, { t: dv(e.outcomes), w: 27, al: 'center' }, { t: comp(e.compNegative), w: 19, al: 'center' }, { t: comp(e.compPositive), w: 19, al: 'center' }],
+      [{ t: `CMTD BY: ${dv(e.committedBy)}      C.R KEYWORDS: ${dv(e.keywords)}      DETECTED BY: ${dv(e.detectedBy)}`, b: 1, c: P_NAVY }]
+    ], tail: { t: e.description, min: 14 } }));
+  sec3('Section 3-C', 'C. Undesired Aircraft State (UAS) Management', S.uas, 'No UAS recorded', (u, i) => block({
+    id: { t: 'U' + (i + 1), w: 16, bg: P_LAB },
+    rows: [
+      [{ t: 'Error #', w: 18, th: 1 }, { t: 'Code', th: 1 }, { t: 'Response', w: 26, th: 1 }, { t: 'Outcomes', w: 27, th: 1 }, { t: '(−) Comp.', w: 19, th: 1 }, { t: '(+) Comp.', w: 19, th: 1 }],
+      [{ t: dv(u.errorNum), w: 18, al: 'center' }, { t: code(u.code, 'uas'), b: 1 }, { t: dv(u.response), w: 26, al: 'center' }, { t: dv(u.outcomes), w: 27, al: 'center' }, { t: comp(u.compNegative), w: 19, al: 'center' }, { t: comp(u.compPositive), w: 19, al: 'center' }],
+      [{ t: `COMMITTED BY: ${dv(u.committedBy)}      DETECTED BY: ${dv(u.detectedBy)}`, b: 1, c: P_NAVY }]
+    ], tail: { t: u.description, min: 14 } }));
+
+  finishPage();
+  return { count: n, jpegs: out };
+}
+function routeLabel(v) { for (const [, list] of ROUTES) for (const [val, lab] of list) if (val === v) return lab; return v; }
+
+function buildPdfBlob() {
+  const count = renderPages(null).count;           // 1차: 전체 쪽수 세기 (꼬리말 "1 / 5" 용)
+  const pages = renderPages(count).jpegs;          // 2차: 실제 그리기
+  return makePdf(pages.map(d => { const b = atob(d.slice(d.indexOf(',') + 1)), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }),
+    pxm(PG.W), pxm(PG.H), 'LOA-' + auditNo());
+}
+// 최소 구성 PDF 1.4 : 페이지마다 JPEG 한 장을 A4 크기로 깔아 넣음
+function makePdf(jpegs, iw, ih, title) {
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const push = d => { const u = typeof d === 'string' ? enc.encode(d) : d; parts.push(u); len += u.length; };
+  const obj = (id, f) => { offs[id] = len; push(`${id} 0 obj\n`); f(); push('\nendobj\n'); };
+  const A4W = 595.28, A4H = 841.89, n = jpegs.length, maxId = 3 + n * 3;
+  push(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34, 0x0A, 0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A]));  // %PDF-1.4
+  obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => push(`<< /Type /Pages /Count ${n} /Kids [${jpegs.map((_, i) => `${4 + i * 3} 0 R`).join(' ')}] >>`));
+  obj(3, () => push(`<< /Title (${String(title).replace(/[^\x20-\x7E]/g, '').replace(/[()\\]/g, '')}) /Producer (LOA Worksheet ${BUILD}) >>`));
+  jpegs.forEach((img, i) => {
+    const pid = 4 + i * 3, cid = pid + 1, iid = pid + 2;
+    obj(pid, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${A4W} ${A4H}] /Resources << /XObject << /Im0 ${iid} 0 R >> >> /Contents ${cid} 0 R >>`));
+    const cs = `q\n${A4W} 0 0 ${A4H} 0 0 cm\n/Im0 Do\nQ\n`;
+    obj(cid, () => push(`<< /Length ${cs.length} >>\nstream\n${cs}endstream`));
+    obj(iid, () => { push(`<< /Type /XObject /Subtype /Image /Width ${iw} /Height ${ih} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.length} >>\nstream\n`); push(img); push('\nendstream'); });
+  });
+  const xref = len;
+  let x = `xref\n0 ${maxId + 1}\n0000000000 65535 f \n`;
+  for (let id = 1; id <= maxId; id++) x += String(offs[id]).padStart(10, '0') + ' 00000 n \n';
+  push(x + `trailer\n<< /Size ${maxId + 1} /Root 1 0 R /Info 3 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+
+/* ════════════════════════════════════════════════════════════════
+ *  시작
+ * ════════════════════════════════════════════════════════════════ */
+function fitHeader() { document.documentElement.style.setProperty('--hdr', ($('#top').offsetHeight + 6) + 'px'); }
+window.addEventListener('resize', fitHeader);
+
+const how = load();
+renderAll();
+renderRef('');
+$('#buildTag').textContent = FORM.revLabel + ' · build ' + BUILD;
+let tab = '1', sub = 'threats';
+try { tab = sessionStorage.getItem('loa_tab') || '1'; sub = sessionStorage.getItem('loa_sub') || 'threats'; } catch (e) {}
+showSub(sub); showTab(tab); fitHeader();
+if (how === 'migrated') toast('기존 워크시트에 작성 중이던 내용을 불러왔습니다.');
+
+// 저장 공간을 브라우저가 임의로 지우지 않도록 요청
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+// 오프라인 저장(서비스워커) — 홈 화면 앱에서 인터넷 없이 열기
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW 등록 실패', err));
+  navigator.serviceWorker.addEventListener('message', ev => {
+    if (ev.data && ev.data.type === 'LOA_UPDATED') {
+      toast('새 버전을 받았습니다. 작성 내용은 그대로 유지됩니다.', '지금 적용', () => { flushSave(); location.reload(); }, 0);
+    }
+  });
+}
+</script>
+</body>
+</html>
